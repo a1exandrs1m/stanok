@@ -111,10 +111,14 @@ svg{display:block}
    3. ОБОЛОЧКА: одна вкладка — один экран
    ============================================================ */
 .topbar{
-  position:sticky;top:0;z-index:30;height:var(--topbar);
-  display:flex;align-items:center;gap:10px;padding:0 var(--pad);
+  position:sticky;top:0;z-index:30;
+  height:calc(var(--topbar) + env(safe-area-inset-top));
+  padding:env(safe-area-inset-top) var(--pad) 0;
+  display:flex;align-items:center;gap:10px;
   background:var(--surface);border-bottom:1px solid var(--line);
 }
+/* кнопка темы в шапке — крупнее и с запасом от края экрана */
+.topbar .iconbtn{width:38px;height:38px}
 .topbar .ttl{font-size:16px;font-weight:600;letter-spacing:-.02em;flex:1;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .topbar .sub{font-family:var(--f-num);font-size:11px;color:var(--ink-3);white-space:nowrap}
@@ -135,7 +139,7 @@ svg{display:block}
 
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:40;
-  display:grid;grid-template-columns:repeat(5,1fr);
+  display:grid;grid-template-columns:repeat(6,1fr);
   background:var(--surface);border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom);
 }
@@ -381,7 +385,7 @@ details.acc .in{padding:0 14px 14px}
 @media (min-width:900px){
   body{font-size:14px}
   .wrap{display:grid;grid-template-columns:210px minmax(0,1fr);gap:24px;padding:0 20px}
-  .rail{display:block;position:sticky;top:var(--topbar);align-self:start;padding:16px 0;height:calc(100vh - var(--topbar))}
+  .rail{display:block;position:sticky;top:calc(var(--topbar) + env(safe-area-inset-top));align-self:start;padding:16px 0;height:calc(100vh - var(--topbar))}
   .rail button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 11px;border-radius:var(--r-s);
     color:var(--ink-2);font-size:14px;font-weight:500;margin-bottom:2px}
   .rail button svg{width:18px;height:18px;flex:none}
@@ -392,12 +396,48 @@ details.acc .in{padding:0 14px 14px}
   .g2d{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
   .g3d{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:start}
   .metrics{grid-template-columns:repeat(4,1fr)}
+  .figgrid{grid-template-columns:repeat(4,1fr)}
+  .exguide .fig{width:150px}
   .mback{align-items:center;padding:20px}
   .modal{border-radius:14px}
   .rest{left:auto;right:20px;bottom:20px;width:360px;margin:0}
   .toasts{left:auto;right:20px;transform:none;bottom:20px}
   .hero .day{font-size:28px}
 }
+
+/* ============================================================
+   10. ГИД: схемы упражнений, видео
+   ============================================================ */
+.fig{width:100%;height:auto;display:block;background:var(--surface-2);border-radius:var(--r-s);color:var(--ink)}
+.fig.big{max-width:280px;margin:0 auto}
+.fig .b{stroke:currentColor;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.fig .h{fill:currentColor;stroke:none}
+.fig .eq{stroke:var(--line-2);stroke-width:4;stroke-linecap:round;fill:none}
+.fig .gh{stroke:var(--ink-3);opacity:.32;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.fig .ghh{fill:var(--ink-3);opacity:.32}
+.fig .ar{stroke:var(--accent-text);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+.figgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:4px}
+.figgrid .fig{height:104px}
+.figcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px;display:flex;flex-direction:column;gap:6px}
+.figcard:hover{border-color:var(--ink-3)}
+.figcard span{font-size:12.5px;font-weight:500;line-height:1.25}
+
+.exguide{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+.exguide .fig{width:104px;flex:none}
+.exguide .gtx{flex:1;min-width:0}
+.exguide .tip{margin-bottom:8px}
+
+ul.cues{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)}
+ul.cues li{margin-bottom:5px}
+ul.cues.err li::marker{color:var(--bad)}
+
+.lnk{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);text-decoration:none;color:inherit}
+.lnk:last-child{border-bottom:0}
+.lnk .pl{width:28px;height:28px;flex:none;border-radius:50%;background:var(--accent-soft);color:var(--accent-text);display:flex;align-items:center;justify-content:center}
+.lnk .tx{flex:1;min-width:0;font-size:13.5px;line-height:1.3}
+.lnk .tx em{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.lnk:hover .tx b{color:var(--accent-text)}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important}
@@ -428,6 +468,8 @@ details.acc .in{padding:0 14px 14px}
   <g id="ic-warn"><path d="M12 3.5l8.7 15.5H3.3L12 3.5zM12 10v4M12 16.5h.01"/></g>
   <g id="ic-check"><path d="M4.5 12.5l5 5 10-11"/></g>
   <g id="ic-clock"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.3l3.3 2"/></g>
+  <g id="ic-play"><path d="M8 5.5l11 6.5-11 6.5z"/></g>
+  <g id="ic-book"><path d="M4 4.5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H4zM20 4.5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H20z"/></g>
   <g id="ic-back"><path d="M15 5l-7 7 7 7"/></g>
 </defs></svg>
 
@@ -444,6 +486,7 @@ details.acc .in{padding:0 14px 14px}
     <section class="screen" id="s-workout" tabindex="-1" aria-label="Тренировка"></section>
     <section class="screen" id="s-food" tabindex="-1" aria-label="Питание"></section>
     <section class="screen" id="s-body" tabindex="-1" aria-label="Тело и прогресс"></section>
+    <section class="screen" id="s-learn" tabindex="-1" aria-label="Статьи и техника"></section>
     <section class="screen" id="s-more" tabindex="-1" aria-label="Программа и настройки"></section>
   </main>
 </div>
@@ -1103,6 +1146,7 @@ const TABS = [
   { id: "workout", t: "Тренировка", s: "Трен.", ic: "ic-train" },
   { id: "food", t: "Питание", s: "Еда", ic: "ic-food" },
   { id: "body", t: "Тело и прогресс", s: "Тело", ic: "ic-body" },
+  { id: "learn", t: "Статьи и техника", s: "Статьи", ic: "ic-book" },
   { id: "more", t: "Программа и настройки", s: "Ещё", ic: "ic-more" }
 ];
 function buildNav() {
@@ -1443,7 +1487,11 @@ function renderWorkout() {
         (e.ladderStep ? " · " + esc(e.ladderStep) : "") + '</em></span>' +
         '<span class="st">' + (e.skipped ? "—" : e.sets.filter(s => s.done).length + "/" + e.sets.length) + '</span></button>';
       if (open) {
-        h += '<div class="eb"><div class="tip">' + esc(e.tip) + '</div>';
+        const gd = guideFor(e.key);
+        h += '<div class="eb">' + (gd
+          ? '<div class="exguide">' + figSVG(gd.fig) + '<div class="gtx"><div class="tip">' + esc(e.tip) + '</div>' +
+            '<button type="button" class="btn sm ghost" data-guide="' + esc(EX_GUIDE[e.key]) + '">Как делать</button></div></div>'
+          : '<div class="tip">' + esc(e.tip) + '</div>');
         if (prev) h += '<div class="row" style="padding-top:0"><span class="tx dim">Прошлый раз, ' + esc(humanDate(prev.session.date)) +
           '</span><span class="vv dim">' + prev.ex.sets.filter(s => s.done).map(s => s.reps != null ? s.reps : s.seconds).join(" · ") + '</span></div>';
         h += '<div class="sets">';
@@ -1479,6 +1527,7 @@ function renderWorkout() {
       saveState(); renderWorkout();
     }));
     $$("[data-skip]", el).forEach(b => b.addEventListener("click", () => skipExercise(+b.dataset.skip)));
+    bindGuides(el);
     return;
   }
 
@@ -1507,11 +1556,19 @@ function renderWorkout() {
     warmupBlock() +
     '<div class="card"><h3>План</h3>' + planTable(list) + '</div>';
   $("#w-start").addEventListener("click", startWorkout);
+  bindGuides(el);
 }
 function planTable(list) {
   return '<table><tbody>' + list.map((e, i) =>
     '<tr><td class="n dim" style="width:18px">' + (i + 1) + '</td><td>' + esc(e.name) + '</td>' +
-    '<td class="n">' + esc(rangeText(e)) + '</td></tr>').join("") + '</tbody></table>';
+    '<td class="n">' + esc(rangeText(e)) + '</td>' +
+    '<td style="width:34px">' + (EX_GUIDE[e.key]
+      ? '<button type="button" class="iconbtn sm" data-guide="' + esc(EX_GUIDE[e.key]) + '" aria-label="Как делать: ' + esc(e.name) + '">' + ic("ic-info", 15) + '</button>'
+      : "") + '</td></tr>').join("") + '</tbody></table>';
+}
+/* одна привязка на все кнопки «как делать» в текущем экране */
+function bindGuides(root) {
+  $$("[data-guide]", root).forEach(b => b.addEventListener("click", e => { e.stopPropagation(); openGuide(b.dataset.guide); }));
 }
 function nextPlanTable() {
   for (let i = 1; i <= 7; i++) {
@@ -1611,7 +1668,9 @@ function renderToday() {
     h += '<div class="card tight"><div class="between" style="margin-bottom:6px"><h3 style="font-size:13px">Начнём с этого</h3>' +
       '<button type="button" class="btn sm ghost" id="t-all">Весь план</button></div>' +
       list.map((e, i) => '<div class="row"><span class="tm">' + (i + 1) + '</span><span class="tx">' + esc(e.name) +
-        '</span><span class="vv dim">' + esc(rangeText(e)) + '</span></div>').join("") + '</div>';
+        '</span><span class="vv dim">' + esc(rangeText(e)) + '</span>' +
+        (EX_GUIDE[e.key] ? '<button type="button" class="iconbtn sm" data-guide="' + esc(EX_GUIDE[e.key]) +
+          '" aria-label="Как делать: ' + esc(e.name) + '">' + ic("ic-info", 15) + '</button>' : "") + '</div>').join("") + '</div>';
   }
 
   /* где мы в 36-недельном плане */
@@ -1635,6 +1694,7 @@ function renderToday() {
   });
   const gx = $("#t-gx");
   if (gx) gx.addEventListener("click", () => { state.ui.dismissed["g" + gap] = true; saveState(); renderToday(); });
+  bindGuides(el);
 }
 
 /* =====================================================================
@@ -1962,6 +2022,10 @@ function renderMore() {
     '<button type="button" class="btn sm" id="m-recalc" style="margin-top:8px">Пересчитать от ' + latestWeight().toFixed(1) + ' кг</button></div>';
 
   h += '<div class="sec-h">Настройки</div><div class="card">' +
+    '<div class="swrow"><span>Тема оформления</span><div class="seg">' +
+      [["system", "Система"], ["light", "Светлая"], ["dark", "Тёмная"]].map(x =>
+        '<button type="button" data-th="' + x[0] + '" aria-pressed="' + (s.theme === x[0]) + '">' + x[1] + '</button>').join("") +
+    '</div></div>' +
     '<div class="swrow"><span>Звук таймера</span><button type="button" class="toggle" id="m-snd" aria-pressed="' + s.sound + '" aria-label="Звук"></button></div>' +
     '<div class="swrow"><span>Вибрация</span><button type="button" class="toggle" id="m-vib" aria-pressed="' + s.vibrate + '" aria-label="Вибрация"></button></div>' +
     '<div class="swrow"><span>Напоминания</span><button type="button" class="toggle" id="m-rem" aria-pressed="' + s.reminders.enabled + '" aria-label="Напоминания"></button></div>' +
@@ -1993,6 +2057,9 @@ function renderMore() {
     state.targets = computeTargets(state, latestWeight());
     saveState(true); renderMore(); toast("Норма: " + state.targets.kcalTraining + "/" + state.targets.kcalRest + " ккал", "good");
   });
+  $$("[data-th]", el).forEach(b => b.addEventListener("click", () => {
+    s.theme = b.dataset.th; saveState(); applyTheme(); renderMore();
+  }));
   $("#m-snd").addEventListener("click", () => { s.sound = !s.sound; saveState(); renderMore(); if (s.sound) beep(); });
   $("#m-vib").addEventListener("click", () => { s.vibrate = !s.vibrate; saveState(); renderMore(); buzz(20); });
   $("#m-rem").addEventListener("click", () => {
@@ -2144,6 +2211,417 @@ function buildManifest() {
   })));
 }
 
+/* =====================================================================
+   БЛОК 11. ГИД: схемы упражнений, техника, видео
+   Схемы нарисованы вручную инлайновым SVG — без внешних картинок,
+   работает офлайн и ничего чужого не тянет.
+   ===================================================================== */
+const BAR = '<line x1="14" y1="16" x2="126" y2="16" class="eq"/>';
+const BAR2 = '<line x1="14" y1="40" x2="126" y2="40" class="eq"/>';
+const LOWBAR = '<line x1="20" y1="34" x2="120" y2="34" class="eq"/>';
+const FLOOR = '<line x1="10" y1="94" x2="130" y2="94" class="eq"/>';
+
+const FIGURES = {
+  /* вис на прямых руках */
+  hang: BAR +
+    '<path class="b" d="M62 16 70 42M78 16 70 42M70 42V72M70 72 65 96M70 72 75 96"/>' +
+    '<circle class="h" cx="70" cy="31" r="7"/>',
+
+  /* подтягивания: слева низ (тень), справа верх */
+  pullup: BAR +
+    '<path class="gh" d="M37 16 45 42M53 16 45 42M45 42V72M45 72 40 94M45 72 50 94"/>' +
+    '<circle class="ghh" cx="45" cy="31" r="7"/>' +
+    '<path class="b" d="M81 16 77 34 95 38M109 16 113 34 95 38M95 38V66M95 66 89 88M95 66 101 88"/>' +
+    '<circle class="h" cx="95" cy="26" r="7"/>' +
+    '<path class="ar" d="M66 62 66 38M61 45 66 38 71 45"/>',
+
+  /* австралийские: тело под низкой перекладиной */
+  row: '<line x1="20" y1="30" x2="120" y2="30" class="eq"/>' +
+    '<line x1="10" y1="94" x2="130" y2="94" class="eq"/>' +
+    '<path class="b" d="M74 30 82 42 66 52M66 52 92 68M92 68 108 78M108 78 122 90"/>' +
+    '<circle class="h" cx="54" cy="48" r="7"/>',
+
+  /* брусья: нижняя точка */
+  dip: '<line x1="28" y1="40" x2="112" y2="40" class="eq"/>' +
+    '<line x1="34" y1="40" x2="34" y2="52" class="eq"/><line x1="106" y1="40" x2="106" y2="52" class="eq"/>' +
+    '<path class="b" d="M64 40 80 50 60 58M60 58 64 82M64 82 50 100"/>' +
+    '<circle class="h" cx="48" cy="50" r="7"/>',
+
+  /* отжимания: корпус доской */
+  pushup: FLOOR +
+    '<path class="b" d="M52 92 56 70M56 70 86 78M86 78 104 84M104 84 120 90"/>' +
+    '<circle class="h" cx="44" cy="64" r="7"/>' +
+    '<path class="ar" d="M50 62 122 84" stroke-dasharray="5 4"/>',
+
+  /* отжимания с ногами на возвышении */
+  pushup_incline: FLOOR +
+    '<rect x="100" y="62" width="28" height="32" class="eq"/>' +
+    '<path class="b" d="M48 92 52 72M52 72 82 70M82 70 98 66M98 66 112 62"/>' +
+    '<circle class="h" cx="40" cy="66" r="7"/>',
+
+  /* «щучка» и стойка у стены */
+  pike: FLOOR +
+    '<path class="b" d="M36 92 74 46M74 46 110 92"/>' +
+    '<circle class="h" cx="50" cy="74" r="7"/>' +
+    '<path class="ar" d="M74 34 74 22M69 28 74 22 79 28"/>',
+
+  /* planche lean и псевдо-планш: плечи впереди кистей */
+  lean: FLOOR +
+    '<path class="b" d="M66 92 52 74M52 74 84 80M84 80 102 86M102 86 118 90"/>' +
+    '<circle class="h" cx="42" cy="66" r="7"/>' +
+    '<path class="ar" d="M76 58 52 58M58 53 52 58 58 63"/>',
+
+  /* tuck planche */
+  tuckplanche: FLOOR +
+    '<path class="b" d="M66 92 54 72M54 72 86 72M86 72 96 56M96 56 78 54"/>' +
+    '<circle class="h" cx="44" cy="66" r="7"/>' +
+    '<path class="ar" d="M60 86 92 86" stroke-dasharray="4 4"/>',
+
+  /* front lever в tuck */
+  frontlever: BAR +
+    '<path class="b" d="M60 16V48M60 48 96 48M96 48 110 36M110 36 94 30"/>' +
+    '<circle class="h" cx="48" cy="48" r="7"/>',
+
+  /* hollow hold */
+  hollow: FLOOR +
+    '<path class="b" d="M26 62C42 86 92 90 116 58"/>' +
+    '<circle class="h" cx="22" cy="56" r="7"/>' +
+    '<path class="ar" d="M56 90 84 90" stroke-dasharray="4 4"/>',
+
+  /* планка на предплечьях */
+  plank: FLOOR +
+    '<path class="b" d="M32 92 54 92M54 92 50 72M50 72 82 80M82 80 100 86M100 86 116 92"/>' +
+    '<circle class="h" cx="40" cy="66" r="7"/>' +
+    '<path class="ar" d="M46 64 118 86" stroke-dasharray="5 4"/>',
+
+  /* подъёмы коленей и ног в висе */
+  hangraise: BAR +
+    '<path class="gh" d="M70 70 70 96"/>' +
+    '<path class="b" d="M62 16 70 42M78 16 70 42M70 42V70M70 70 94 64M94 64 94 86"/>' +
+    '<circle class="h" cx="70" cy="31" r="7"/>' +
+    '<path class="ar" d="M108 84 108 60M103 67 108 60 113 67"/>',
+
+  /* L-sit */
+  lsit: FLOOR +
+    '<line x1="46" y1="74" x2="46" y2="94" class="eq"/>' +
+    '<line x1="36" y1="74" x2="56" y2="74" class="eq"/>' +
+    '<path class="b" d="M46 74 46 56M46 56 54 76M54 76 80 72M80 72 106 70"/>' +
+    '<circle class="h" cx="44" cy="44" r="7"/>',
+
+  /* болгарские сплит-приседания и выпады */
+  split: FLOOR +
+    '<rect x="98" y="62" width="30" height="32" class="eq" fill="none"/>' +
+    '<path class="b" d="M60 56 56 76M56 76 58 92M60 56 86 78M86 78 102 62M60 56 58 34"/>' +
+    '<circle class="h" cx="58" cy="26" r="7"/>',
+
+  /* пистолет */
+  pistol: FLOOR +
+    '<path class="b" d="M60 58 52 76M52 76 58 92M60 58 112 54M60 58 62 36M62 44 96 46"/>' +
+    '<circle class="h" cx="62" cy="28" r="7"/>',
+
+  /* выход силой: верхняя точка */
+  muscleup: BAR2 +
+    '<path class="b" d="M70 40 82 34 66 28M66 28 68 54M68 54 60 78M68 54 76 78"/>' +
+    '<circle class="h" cx="64" cy="17" r="7"/>' +
+    '<path class="ar" d="M104 76C116 62 114 46 98 38M98 38 106 38M98 38 99 46"/>',
+
+  /* запястья */
+  wrists: FLOOR +
+    '<path class="b" d="M50 58 78 90M78 92 100 92"/>' +
+    '<circle class="h" cx="48" cy="52" r="7"/>'
+};
+
+/* Техника: коротко о главном, типичные ошибки, проверенное видео */
+const GUIDES = {
+  hang: { fig: "hang", t: "Вис на прямых руках",
+    how: ["Хват чуть шире плеч, большой палец обхватывает перекладину.",
+      "Плечи не проваливай к ушам — держи лопатки чуть опущенными.",
+      "Тело спокойное, без раскачки. Дыши ровно."],
+    err: ["Висеть «мешком» с задранными плечами — так грузятся связки, а не мышцы.",
+      "Раскачиваться и пружинить: хват тренируется в неподвижном висе."],
+    v: "eGo4IYlbE5g" },
+
+  pullup: { fig: "pullup", t: "Подтягивания",
+    how: ["Из виса сначала опусти лопатки вниз, только потом тяни руками.",
+      "Тяни локтями вниз и назад, грудь ведёт к перекладине.",
+      "Вверху подбородок выше перекладины, внизу руки полностью выпрямляются.",
+      "Опускание — 2 секунды, без падения."],
+    err: ["Рывок ногами и киппинг: считается только то, что подняли мышцы спины.",
+      "Неполная амплитуда внизу — половина работы теряется.",
+      "Локти в стороны: плечу тяжелее, спине легче — тяни локти к бокам."],
+    v: "eGo4IYlbE5g" },
+
+  row: { fig: "row", t: "Австралийские подтягивания",
+    how: ["Перекладина на уровне пояса, ноги на полу, тело вытянуто в линию.",
+      "Тяни грудью к перекладине, лопатки сводишь в верхней точке.",
+      "Чем горизонтальнее тело, тем тяжелее — так и регулируется нагрузка."],
+    err: ["Провисающий таз — корпус должен быть жёстким, как в планке.",
+      "Тянуть только руками, без сведения лопаток."],
+    v: "GBqAZP6jquc" },
+
+  dip: { fig: "dip", t: "Отжимания на брусьях",
+    how: ["В нижней точке плечо опускается чуть ниже локтя — глубже не нужно.",
+      "Локти вдоль корпуса, не разводи в стороны.",
+      "Лёгкий наклон корпуса вперёд включает грудь, вертикально — трицепс."],
+    err: ["Падать вниз без контроля: плечевой сустав этого не прощает.",
+      "Плечи к ушам — держи их опущенными и стабильными."],
+    v: "GdISLQcG8BA" },
+
+  pushup: { fig: "pushup", t: "Отжимания от пола",
+    how: ["Ладони под плечами или чуть шире, пальцы вперёд.",
+      "Корпус — прямая линия от головы до пяток, ягодицы и пресс напряжены.",
+      "Локти под 45° к корпусу, грудь опускается до пола.",
+      "Вверху доталкивайся, чуть разводя лопатки."],
+    err: ["Проваленная поясница и таз вниз — самая частая ошибка.",
+      "Локти в стороны на 90°: перегруз плеча.",
+      "Опускать только голову, а не грудь."],
+    v: "fKkCAsBg9Ng" },
+
+  pushup_incline: { fig: "pushup_incline", t: "Отжимания с ногами на возвышении",
+    how: ["Чем выше ноги, тем больше нагрузки на плечи и верх груди.",
+      "Начни с высоты стула, корпус держи прямым.",
+      "Таз не задирай вверх — это превращает движение в «щучку»."],
+    err: ["Слишком большая высота сразу — техника ломается на первом же повторе.",
+      "Прогиб в пояснице."],
+    v: "fKkCAsBg9Ng" },
+
+  pike: { fig: "pike", t: "Отжимания «щучкой» и стойка у стены",
+    how: ["Таз высоко, тело буквой Λ, вес смещён на руки.",
+      "Голова опускается в треугольник ПЕРЕД ладонями, а не между ними.",
+      "Локти идут назад-вбок под 45°, не в стороны."],
+    err: ["Опускаться макушкой прямо на кисти — теряется равновесие и грузится шея.",
+      "Прогиб в пояснице в стойке у стены: держи рёбра втянутыми."],
+    v: "GdISLQcG8BA" },
+
+  lean: { fig: "lean", t: "Planche lean и псевдо-планш-отжимания",
+    how: ["Упор лёжа, руки прямые, кисти развёрнуты чуть наружу или назад.",
+      "Выведи плечи ВПЕРЁД за линию кистей — чем дальше, тем тяжелее.",
+      "Лопатки вытолкнуты, таз подкручен, тело в линию.",
+      "В псевдо-планш-отжиманиях кисти ближе к поясу, плечи всё время впереди кистей."],
+    err: ["Сгибать локти вместо наклона: тогда это обычные отжимания.",
+      "Прогиб в пояснице и таз вниз.",
+      "Резко увеличивать наклон — запястья не успевают адаптироваться."],
+    v: "TZ63httkob4" },
+
+  tuckplanche: { fig: "tuckplanche", t: "Tuck planche",
+    how: ["Руки прямые и заблокированы, кисти развёрнуты слегка наружу.",
+      "Плечи выведены вперёд, лопатки вытолкнуты от пола.",
+      "Колени подтянуты к груди, таз НЕ выше плеч.",
+      "Держи столько, сколько сохраняется прямая рука."],
+    err: ["Согнутые локти — это уже не планш, а группировка в упоре.",
+      "Таз задран вверх: получается «лягушка», а не планш."],
+    v: "M5il8Jpltt8" },
+
+  frontlever: { fig: "frontlever", t: "Front lever",
+    how: ["Вис прямым хватом, руки ПРЯМЫЕ на протяжении всего удержания.",
+      "Тяни перекладину к бёдрам прямыми руками — включаются широчайшие.",
+      "Таз подкручен, поясница круглая, рёбра втянуты — никакого прогиба.",
+      "Прогрессия: колени к груди → колени дальше от груди → ноги врозь → прямые."],
+    err: ["Сгибать локти, чтобы удержаться — это уже другое упражнение.",
+      "Прогиб в пояснице: тело провисает и держать становится нечем.",
+      "Прыгать на следующую ступень, не удерживая текущую 15 секунд чисто."],
+    v: "BwhZYpIdhro" },
+
+  hollow: { fig: "hollow", t: "Hollow hold и hollow rocks",
+    how: ["Лёжа на спине, поясница ПРИЖАТА к полу — это главное условие.",
+      "Таз подкручен, лопатки и ноги оторваны от пола.",
+      "Чем ниже ноги и дальше руки, тем тяжелее — так регулируй нагрузку.",
+      "В rocks качайся всем корпусом целиком, не сгибаясь."],
+    err: ["Зазор под поясницей: упражнение перестаёт работать и грузит спину.",
+      "Задерживать дыхание — дыши поверхностно, но непрерывно."],
+    v: "uZqTUwq96iU" },
+
+  plank: { fig: "plank", t: "Планка",
+    how: ["Локти строго под плечами, предплечья параллельны.",
+      "Ягодицы и пресс сжаты, таз подкручен, тело в линию.",
+      "Взгляд в пол, шея продолжает линию тела."],
+    err: ["Провисший таз — нагрузка уходит в поясницу.",
+      "Задранный таз: становится легко и бессмысленно.",
+      "Стоять дольше минуты вместо усложнения — лучше добавить сложности."],
+    v: "uZqTUwq96iU" },
+
+  hangraise: { fig: "hangraise", t: "Подъёмы ног в висе",
+    how: ["Вис без раскачки, плечи слегка активны.",
+      "Начинай движение с подкрутки таза, а не с маха ногами.",
+      "Колени (или прямые ноги) поднимаются минимум до уровня таза.",
+      "Опускай медленно и подконтрольно."],
+    err: ["Раскачка и мах: пресс почти не работает.",
+      "Прямые ноги раньше времени — вернись к коленям, если таз не подкручивается."],
+    v: "uZqTUwq96iU" },
+
+  lsit: { fig: "lsit", t: "L-sit",
+    how: ["Руки прямые, плечи опущены ОТ ушей, лопатки вытолкнуты.",
+      "Колени прямые, носки натянуты, ноги параллельно полу.",
+      "Straddle-версия (ноги врозь) легче полной."],
+    err: ["Плечи к ушам и согнутые локти.",
+      "Круглая спина с завалом назад: сиди «высоко»."],
+    v: "M5il8Jpltt8" },
+
+  split: { fig: "split", t: "Болгарские сплит-приседания и выпады",
+    how: ["Задняя нога на опоре высотой с колено, передняя в шаге вперёд.",
+      "Опускайся вертикально вниз, колено идёт вдоль стопы.",
+      "Вес на пятке передней ноги, корпус чуть наклонён вперёд.",
+      "Вниз 2 секунды, вверх — с усилием."],
+    err: ["Слишком короткий шаг: колено уезжает далеко за носок.",
+      "Заваливать корпус вбок — держи таз ровно.",
+      "Отталкиваться задней ногой: она только для равновесия."],
+    v: "" },
+
+  pistol: { fig: "pistol", t: "Пистолет",
+    how: ["Начинай с приседа на возвышение — так проще контролировать глубину.",
+      "Пятка опорной ноги не отрывается от пола.",
+      "Свободная нога прямая впереди, руки вытянуты для равновесия.",
+      "Спина прямая, наклон корпуса вперёд допустим."],
+    err: ["Падать вниз без контроля.",
+      "Отрыв пятки — не хватает подвижности голеностопа, поставь под пятку блин или книгу."],
+    v: "" },
+
+  muscleup: { fig: "muscleup", t: "Выход силой",
+    how: ["Нужны 8+ чистых подтягиваний и уверенные отжимания на брусьях.",
+      "Разгоняй тягой к низу груди, а не к подбородку.",
+      "В верхней точке быстро продень запястья и уведи грудь ВПЕРЁД через перекладину.",
+      "Начинай с негативов: из упора медленно опускайся через переход."],
+    err: ["Учить выход, не имея базы: разбитые запястья и локти.",
+      "Тянуть к подбородку — тогда перехода не будет никогда.",
+      "Огромный мах ногами вместо тяги."],
+    v: "gdShAAess9g" },
+
+  wrists: { fig: "wrists", t: "Запястья",
+    how: ["Опора на ладони пальцами к себе и от себя, по 30 секунд.",
+      "Затем опора на тыльную сторону кисти, очень мягко.",
+      "Круги кистями в обе стороны и сжимание-разжимание кулака."],
+    err: ["Тянуть через боль: связки запястья восстанавливаются долго.",
+      "Пропускать это перед планш-работой — там запястья нагружены сильнее всего."],
+    v: "" }
+};
+
+/* какое упражнение к какой схеме относится */
+const EX_GUIDE = {
+  pullups: "pullup", pull_neg: "pullup", chinups: "pullup", pullups_w: "pullup",
+  explosive_chest: "pullup", chinups_narrow: "pullup", explosive_waist: "pullup",
+  pullups_weighted2: "pullup",
+  rows_aus: "row", rows_pause: "row",
+  dips: "dip", dips_lean: "dip", dips_weighted: "dip",
+  pushups: "pushup", pushups_feet: "pushup_incline",
+  hspu_wall: "pike", hspu_wall2: "pike",
+  planche_lean: "lean", planche_lean_prog: "lean", pseudo_planche: "lean", pseudo_deep: "lean",
+  tuck_planche: "tuckplanche",
+  tuck_fl: "frontlever", adv_tuck_fl: "frontlever", straddle_fl: "frontlever",
+  fl_raises: "frontlever", fl_pullups_tuck: "frontlever",
+  hollow: "hollow", hollow_rocks: "hollow",
+  plank: "plank",
+  knee_raises: "hangraise", leg_raises_hang: "hangraise", toes_to_bar: "hangraise",
+  straddle_lsit: "lsit",
+  dead_hang: "hang",
+  bulgarian: "split", lunges: "split",
+  pistol_box: "pistol", pistol: "pistol",
+  muscleup_neg: "muscleup",
+  wrists: "wrists"
+};
+
+/* Проверенные видео: id, автор и название сверены с YouTube 07.09.2026 */
+const VIDEOS = [
+  { g: "База и техника", id: "eGo4IYlbE5g", a: "Calisthenicmovement", t: "The Perfect Pull Up — Do it right!", d: "Разбор подтягивания по частям: лопатки, локти, амплитуда." },
+  { g: "База и техника", id: "6GWT7GLXE3c", a: "Calisthenicmovement", t: "Pull Ups For Beginners — From 0 to 5", d: "Что делать, если подтягиваний почти нет." },
+  { g: "База и техника", id: "fKkCAsBg9Ng", a: "FitnessFAQs", t: "The Smarter Way to Push-Up", d: "Отжимания без убитых плеч: положение локтей и лопаток." },
+  { g: "База и техника", id: "GdISLQcG8BA", a: "THENX", t: "How To Start Calisthenics — Push Ups & Dips", d: "Отжимания и брусья с нуля, глубина и наклон корпуса." },
+  { g: "База и техника", id: "zXrbCUu2I0w", a: "STRIQfit", t: "How to actually learn Pull-Ups", d: "Подробно про прогрессию к первым подтягиваниям." },
+
+  { g: "Корпус", id: "uZqTUwq96iU", a: "FitnessFAQs", t: "The BEST Hollow Body Progressions", d: "Hollow hold от новичка до продвинутого — база под все элементы." },
+
+  { g: "Элементы", id: "BwhZYpIdhro", a: "Ashton Fitness", t: "Zero to Tuck Front Lever", d: "Пошагово до tuck front lever — ровно твоя ближайшая цель." },
+  { g: "Элементы", id: "B3_iF6mxSXY", a: "FitnessFAQs", t: "Master The Front Lever Hold", d: "Разбор удержания и типичных ошибок в front lever." },
+  { g: "Элементы", id: "SeIfKANM8rQ", a: "THENX", t: "How To Front Lever — Anyone Can Do It", d: "Второй взгляд на ту же прогрессию, другой подход." },
+  { g: "Элементы", id: "TZ63httkob4", a: "FitnessFAQs", t: "How To Planche Push-Up (Best Progressions)", d: "Planche lean и псевдо-планш — то, что в программе с первой фазы." },
+  { g: "Элементы", id: "M5il8Jpltt8", a: "CHRIS HERIA", t: "How To Tuck Planche", d: "Tuck planche: положение лопаток и таза." },
+  { g: "Элементы", id: "gdShAAess9g", a: "Арсений Ким (neofit)", t: "Как научиться делать выход силой", d: "По-русски: подводящие и разбор техники выхода на две.", ru: true }
+];
+
+const CHANNELS = [
+  { h: "calimove", n: "Calisthenicmovement", d: "Самые аккуратные разборы техники. Если сомневаешься в упражнении — начни отсюда." },
+  { h: "FitnessFAQs", n: "FitnessFAQs", d: "Наука и прогрессии: элементы, плечи, суставы, восстановление." },
+  { h: "HybridCalisthenics", n: "Hybrid Calisthenics", d: "Прогрессии для тех, кто начинает с нуля. Спокойно и без пафоса." },
+  { h: "ChrisHeria", n: "Chris Heria", d: "Много практики и готовых тренировок. Технику проверяй по первым двум." },
+  { h: "MinusTheGym", n: "Minus The Gym", d: "Домашние варианты без турника — пригодится зимой." },
+  { h: "CalisthenicsSchoolRu", n: "Школа Воркаута", d: "По-русски: элементы и техника с объяснением анатомии.", ru: true },
+  { h: "ilyakolobov", n: "Илья Колобов", d: "По-русски: калистеника для начинающих, что делать на турниках.", ru: true },
+  { h: "GymFitINFO", n: "GymFit INFO", d: "По-русски: переводы зарубежных тренеров.", ru: true }
+];
+
+/* Короткие тексты «о главном» — своими словами, без внешних ссылок */
+const NOTES_TXT = [
+  { t: "Техника важнее количества", b: "Пять чистых подтягиваний дают больше, чем десять с рывками. Кривой повтор не просто «менее полезен» — он учит нервную систему неправильному движению, и потом это переучивать дольше, чем осваивать с нуля. Правило простое: как только техника поплыла, подход закончен, даже если в запасе оставались силы." },
+  { t: "Почему прогрессия, а не «до отказа»", b: "Отказ выматывает нервную систему и почти не добавляет силы, зато крадёт следующую тренировку. Поэтому в программе везде диапазон повторов: взял верхнюю границу во всех подходах — переходишь на следующую ступень и снова начинаешь с нижней. Так нагрузка растёт постоянно и предсказуемо, а не рывками." },
+  { t: "Сон — это и есть тренировка", b: "Сила растёт не на площадке, а ночью. Недосып бьёт по силовым показателям сильнее, чем пропуск одной тренировки, и заодно повышает тягу к еде. Отсюда и правило про кофеин не позже 16:00: банка в шесть вечера отнимает не бодрость, а глубокую фазу сна." },
+  { t: "Дефицит и сила одновременно", b: "На дефиците калорий сила растёт медленнее, но растёт — при двух условиях: белка достаточно (у тебя 155 г в день) и дефицит умеренный. Поэтому здесь −400 ккал, а не −800: с большим дефицитом вес уходит быстрее, но вместе с ним уходят и мышцы, и результаты в подтягиваниях." },
+  { t: "Разгрузочная неделя не пропуск", b: "Каждая 7-я неделя идёт с объёмом на 40% меньше. Это не лень и не откат: связки и нервная система восстанавливаются медленнее мышц, и без плановой разгрузки они догоняют вас травмой. После разгрузки показатели обычно не падают, а подрастают." },
+  { t: "Что делать с болью", b: "Мышечная боль через день после тренировки — нормально. Резкая боль в суставе, локте или плече во время движения — нет. В этом случае упражнение пропускается (в приложении есть причина «Боль»), а не «дожимается». Локти и запястья в калистенике страдают чаще всего, и почти всегда из-за спешки с элементами." }
+];
+
+/* --- Рендер схемы и карточки техники --- */
+function figSVG(name, cls) {
+  const f = FIGURES[name];
+  if (!f) return "";
+  return '<svg class="fig ' + (cls || "") + '" viewBox="0 0 140 110" role="img" aria-label="Схема упражнения">' + f + '</svg>';
+}
+function guideFor(exKey) {
+  const g = EX_GUIDE[exKey];
+  return g ? GUIDES[g] : null;
+}
+function ytLink(id) { return "https://www.youtube.com/watch?v=" + id; }
+
+function openGuide(gKey) {
+  const g = GUIDES[gKey];
+  if (!g) return;
+  modal({
+    title: g.t,
+    html: figSVG(g.fig, "big") +
+      '<div class="sec-h" style="margin-top:14px">Как делать</div>' +
+      '<ul class="cues">' + g.how.map(x => "<li>" + esc(x) + "</li>").join("") + '</ul>' +
+      '<div class="sec-h">Частые ошибки</div>' +
+      '<ul class="cues err">' + g.err.map(x => "<li>" + esc(x) + "</li>").join("") + '</ul>' +
+      (g.v ? '<a class="btn sm" style="margin-top:12px;text-decoration:none;color:var(--ink)" href="' + ytLink(g.v) +
+        '" target="_blank" rel="noopener noreferrer">Видео с разбором</a>' : ""),
+    okText: "Понятно", cancel: false
+  });
+}
+
+/* --- Экран «Гид» --- */
+function renderLearn() {
+  const el = $("#s-learn");
+  const keys = Object.keys(GUIDES);
+  let h = '<div class="note">' + ic("ic-info", 16) +
+    '<div>Схемы нарисованы прямо в приложении, поэтому работают без интернета. Видео открываются на YouTube — ссылки проверены.</div></div>';
+
+  h += '<div class="sec-h">Как делать упражнения</div><div class="figgrid">' +
+    keys.map(k => '<button type="button" class="figcard" data-g="' + k + '">' +
+      figSVG(GUIDES[k].fig) + '<span>' + esc(GUIDES[k].t) + '</span></button>').join("") + '</div>';
+
+  h += '<div class="sec-h">Видео с разбором техники</div>';
+  const groups = [];
+  VIDEOS.forEach(v => { if (groups.indexOf(v.g) < 0) groups.push(v.g); });
+  groups.forEach(gr => {
+    h += '<div class="card"><h3>' + esc(gr) + '</h3>' +
+      VIDEOS.filter(v => v.g === gr).map(v =>
+        '<a class="lnk" href="' + ytLink(v.id) + '" target="_blank" rel="noopener noreferrer">' +
+        '<span class="pl">' + ic("ic-play", 16) + '</span>' +
+        '<span class="tx"><b>' + esc(v.t) + '</b>' + (v.ru ? ' <span class="pill acc">рус</span>' : "") +
+        '<em>' + esc(v.a) + ' · ' + esc(v.d) + '</em></span></a>').join("") + '</div>';
+  });
+
+  h += '<div class="sec-h">Каналы, которые стоит листать</div><div class="card">' +
+    CHANNELS.map(c => '<a class="lnk" href="https://www.youtube.com/@' + c.h + '" target="_blank" rel="noopener noreferrer">' +
+      '<span class="pl">' + ic("ic-play", 16) + '</span><span class="tx"><b>' + esc(c.n) + '</b>' +
+      (c.ru ? ' <span class="pill acc">рус</span>' : "") + '<em>' + esc(c.d) + '</em></span></a>').join("") + '</div>';
+
+  h += '<div class="sec-h">Коротко о главном</div>' +
+    NOTES_TXT.map(n => '<details class="acc"><summary>' + esc(n.t) + '</summary><div class="in">' +
+      '<p class="mid" style="font-size:13.5px;margin:0">' + esc(n.b) + '</p></div></details>').join("");
+
+  el.innerHTML = h;
+  $$("[data-g]", el).forEach(b => b.addEventListener("click", () => openGuide(b.dataset.g)));
+}
+
 /* --- Диспетчер экранов --- */
 function renderScreen(id) {
   charts = [];
@@ -2152,6 +2630,7 @@ function renderScreen(id) {
   else if (id === "workout") renderWorkout();
   else if (id === "food") renderFood();
   else if (id === "body") renderBody();
+  else if (id === "learn") renderLearn();
   else if (id === "more") renderMore();
 }
 
