@@ -789,7 +789,7 @@ function defaultState() {
       theme: "system", sound: true, vibrate: true,
       reminders: { enabled: false, workout: "18:00", weight: "09:00", meal: "21:00" }
     },
-    ui: { dismissed: {} }
+    ui: { dismissed: {}, forgiven: {} }
   };
   st.targets = computeTargets(st, 85);
   return st;
@@ -839,7 +839,8 @@ function migrate(obj) {
   st.program.deferred = Object.assign({}, (obj.program || {}).deferred);
   st.settings = Object.assign({}, d.settings, obj.settings);
   st.settings.reminders = Object.assign({}, d.settings.reminders, (obj.settings || {}).reminders);
-  st.ui = Object.assign({ dismissed: {} }, obj.ui);
+  st.ui = Object.assign({ dismissed: {}, forgiven: {} }, obj.ui);
+  st.ui.forgiven = st.ui.forgiven || {};
   ["sessions", "walks", "meals", "water", "caffeine", "body", "tests", "customFoods"].forEach(k => {
     if (!Array.isArray(st[k])) st[k] = d[k];
   });
@@ -887,15 +888,63 @@ const isDeloadWeek = w => w % 7 === 0;   // каждая 7-я неделя — �
 
 /* Какой сегодня день программы: A / B / walk / rest.
    Схема: нечётная неделя A-B-A, чётная B-A-B (зеркальная). */
+function isTrainDow(dateStr) { return state.profile.trainingDays.indexOf(dowMon1(dateStr)) >= 0; }
+
+/* Календарная схема A-B-A / B-A-B — используется только для прошлого */
+function calendarLetter(dateStr) {
+  const idx = Math.max(0, state.profile.trainingDays.indexOf(dowMon1(dateStr)));
+  const seq = weekNumber(dateStr) % 2 === 0 ? ["B", "A", "B"] : ["A", "B", "A"];
+  return seq[idx % seq.length];
+}
+/* Последняя сделанная тренировка — по дате, а не по порядку в массиве */
+function lastDoneSession() {
+  let best = null;
+  state.sessions.forEach(s => { if (s.day && (!best || s.date > best.date)) best = s; });
+  return best;
+}
+/* Какая тренировка следующая по очереди */
+function nextLetter() {
+  const l = lastDoneSession();
+  return l ? (l.day === "A" ? "B" : "A") : "A";
+}
+/* Пропуск сдвигает очередь, а не ломает чередование:
+   сегодня и дальше буква считается от последней СДЕЛАННОЙ тренировки. */
+function letterFor(dateStr) {
+  const done = state.sessions.find(s => s.date === dateStr && s.day);
+  if (done) return done.day;
+  const today = isoDate();
+  if (dateStr < today) return calendarLetter(dateStr);
+  let k = 0, d = today;
+  for (let i = 0; i < 120 && d <= dateStr; i++) {
+    if (isTrainDow(d)) { k++; if (d === dateStr) break; }
+    d = addDays(d, 1);
+  }
+  const start = nextLetter();
+  if (k <= 1) return start;
+  return k % 2 === 1 ? start : (start === "A" ? "B" : "A");
+}
+/* Наверстанная тренировка закрывает пропущенный день */
+function makeupCovers(dateStr) { return state.sessions.some(s => s.makeupFor === dateStr); }
+/* Пропущенные тренировочные дни за последние две недели */
+function missedWorkouts() {
+  const today = isoDate(), out = [];
+  const forgiven = state.ui.forgiven || {};
+  for (let i = 1; i <= 14; i++) {
+    const d = addDays(today, -i);
+    if (d < state.program.startedAt) break;
+    if (!isTrainDow(d)) continue;
+    if (state.sessions.some(s => s.date === d)) continue;
+    if (makeupCovers(d) || forgiven[d]) continue;
+    out.push(d);
+  }
+  return out;
+}
+
 function dayPlanFor(dateStr) {
   const dow = dowMon1(dateStr);
   const w = weekNumber(dateStr);
-  const td = state.profile.trainingDays;
-  const idx = td.indexOf(dow);
-  if (idx >= 0) {
-    const mirrored = w % 2 === 0;
-    const seq = mirrored ? ["B", "A", "B"] : ["A", "B", "A"];
-    return { kind: "train", day: seq[idx % seq.length], week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w) };
+  if (isTrainDow(dateStr)) {
+    return { kind: "train", day: letterFor(dateStr), week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w) };
   }
   if (dow === 2 || dow === 4) return { kind: "walk", week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w) };
   return { kind: "rest", week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w) };
@@ -1028,7 +1077,7 @@ function computeStreak() {
   for (let i = 0; i < 400; i++) {
     const plan = dayPlanFor(d);
     let ok;
-    if (plan.kind === "train") ok = state.sessions.some(s => s.date === d);
+    if (plan.kind === "train") ok = state.sessions.some(s => s.date === d) || makeupCovers(d);
     else if (plan.kind === "walk") ok = state.walks.some(w => w.date === d && w.done);
     else ok = true;
     /* сегодняшний невыполненный день стрик не рвёт — он ещё впереди */
@@ -1252,6 +1301,7 @@ function heatHTML(weeks) {
       if (date <= today) {
         const p = dayPlanFor(date);
         if (state.sessions.some(s => s.date === date)) { cls += " l3"; ttl += " · тренировка"; }
+        else if (makeupCovers(date)) { cls += " l2"; ttl += " · наверстано позже"; }
         else if (state.walks.some(x => x.date === date && x.done)) { cls += " l2"; ttl += " · ходьба"; }
         else if (p.kind === "rest") { cls += " l1"; ttl += " · отдых"; }
         else { cls += " l0"; ttl += " · пропуск"; }
@@ -1350,13 +1400,20 @@ function rangeText(e) {
   const r = e.min === e.max ? String(e.min) : (e.max >= 900 ? e.min + "+" : e.min + "–" + e.max);
   return e.sets + "×" + r + " " + (UNIT[e.unit] || "");
 }
-function buildSession(date) {
-  const plan = dayPlanFor(date);
-  if (plan.kind !== "train") return null;
+function buildSession(date, letterOverride, makeupFor) {
+  const w = weekNumber(date);
+  let plan = dayPlanFor(date);
+  if (plan.kind !== "train") {
+    if (!letterOverride) return null;
+    /* тренировка вне расписания: наверстываем пропущенный день */
+    plan = { kind: "train", day: letterOverride, week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w) };
+  } else if (letterOverride) {
+    plan = Object.assign({}, plan, { day: letterOverride });
+  }
   return {
     id: uid(), date, day: plan.day, week: plan.week, phase: plan.phase.n,
     mode: state.profile.mode, deload: plan.deload, startedAtMs: Date.now(),
-    durationSec: 0, note: "",
+    makeupFor: makeupFor || null, durationSec: 0, note: "",
     exercises: exercisesFor(plan).map(e => {
       const prev = lastResultFor(e.key);
       let pre = e.min;
@@ -1374,9 +1431,12 @@ function buildSession(date) {
     })
   };
 }
-function startWorkout() {
-  const s = buildSession(isoDate());
-  if (!s) { toast("Сегодня не тренировочный день", "bad"); return; }
+function startWorkout(o) {
+  o = o || {};
+  const plan = dayPlanFor(isoDate());
+  const letter = o.letter || (plan.kind === "train" ? null : nextLetter());
+  const s = buildSession(isoDate(), letter, o.makeupFor);
+  if (!s) { toast("Не получилось собрать тренировку", "bad"); return; }
   const go = () => { state.active = s; state.ui.openEx = 0; saveState(); showTab("workout"); };
   if (state.sessions.some(x => x.date === s.date)) {
     modal({ title: "Уже записана", text: "На сегодня есть завершённая тренировка. Начать ещё одну?", okText: "Начать" })
@@ -1429,7 +1489,7 @@ function finishWorkout() {
   stopRest(); saveState(true);
   const promos = promotionSuggestions(copy), stag = stagnantExercises();
   modal({
-    title: "Готово, день " + copy.day,
+    title: "Готово, день " + copy.day + (copy.makeupFor ? " (наверстано)" : ""),
     html: '<div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px">' +
       metricCell("Время", fmtDur(copy.durationSec), "") + metricCell("Повторов", String(reps), "") +
       metricCell("Упражнений", String(done.length), "") + '</div>' +
@@ -1536,14 +1596,20 @@ function renderWorkout() {
     const done = state.walks.some(w => w.date === today && w.done);
     el.innerHTML = '<div class="card"><h3>Сегодня ходьба</h3>' +
       '<p class="mid" style="font-size:13px">30–40 минут спокойным темпом. Это восстановление, а не тренировка — не гони.</p>' +
-      '<button type="button" class="btn ' + (done ? "" : "pri") + ' big" id="wk">' + (done ? "Отмечено" : "Отметить ходьбу") + '</button></div>' + warmupBlock();
+      '<button type="button" class="btn ' + (done ? "" : "pri") + ' big" id="wk">' + (done ? "Отмечено" : "Отметить ходьбу") + '</button>' +
+      '<button type="button" class="btn ghost" id="wx" style="width:100%;margin-top:8px">Начать тренировку · день ' + nextLetter() + '</button></div>' + warmupBlock();
     $("#wk").addEventListener("click", toggleWalk);
+    $("#wx").addEventListener("click", () => startWorkout({ letter: nextLetter(), makeupFor: (missedWorkouts()[0] || null) }));
     return;
   }
   if (plan.kind === "rest") {
     el.innerHTML = '<div class="card"><h3>Сегодня отдых</h3>' +
-      '<p class="mid" style="font-size:13px">Мышцы растут в эти дни, а не на площадке. Ближайшая тренировка — ' + esc(nextTrainLabel()) + '.</p></div>' +
+      '<p class="mid" style="font-size:13px">Мышцы растут в эти дни, а не на площадке. Ближайшая тренировка — ' + esc(nextTrainLabel()) + '.</p>' +
+      '<button type="button" class="btn ghost" id="wx" style="width:100%">Всё равно потренироваться · день ' + nextLetter() + '</button></div>' +
       warmupBlock() + '<div class="card"><h3>Что будет в следующий раз</h3>' + nextPlanTable() + '</div>';
+    const wx = $("#wx");
+    if (wx) wx.addEventListener("click", () => startWorkout({ letter: nextLetter(), makeupFor: (missedWorkouts()[0] || null) }));
+    bindGuides(el);
     return;
   }
   const list = exercisesFor(plan);
@@ -1555,7 +1621,7 @@ function renderWorkout() {
     '<button type="button" class="btn pri big" id="w-start">Начать тренировку</button></div>' +
     warmupBlock() +
     '<div class="card"><h3>План</h3>' + planTable(list) + '</div>';
-  $("#w-start").addEventListener("click", startWorkout);
+  $("#w-start").addEventListener("click", () => startWorkout());
   bindGuides(el);
 }
 function planTable(list) {
@@ -1587,8 +1653,8 @@ function homeNote() {
 }
 function nextTrainLabel() {
   for (let i = 1; i <= 7; i++) {
-    const d = addDays(isoDate(), i), p = dayPlanFor(d);
-    if (p.kind === "train") return DOW_SHORT[dowMon1(d)] + ", день " + p.day;
+    const d = addDays(isoDate(), i);
+    if (isTrainDow(d)) return DOW_SHORT[dowMon1(d)] + ", день " + letterFor(d);
   }
   return "по плану";
 }
@@ -1628,6 +1694,18 @@ function renderToday() {
       '<button type="button" class="btn sm" id="t-roll" style="margin-top:8px">Откатить</button></div>' +
       '<button type="button" class="iconbtn sm x" id="t-gx" aria-label="Скрыть">' + ic("ic-x", 15) + '</button></div>';
   }
+  /* пропущенная тренировка не исчезает молча */
+  const missed = missedWorkouts();
+  if (missed.length) {
+    const md = missed[0], ml = nextLetter();
+    h += '<div class="note warn">' + ic("ic-warn", 16) +
+      '<div><b>Тренировка не отмечена: ' + esc(DOW_SHORT[dowMon1(md)] + ", " + humanDate(md)) + '.</b>' +
+      (missed.length > 1 ? ' Всего пропущено дней: ' + missed.length + '.' : "") +
+      ' Очередь не съехала — следующим идёт день ' + ml + '. Можно наверстать сегодня.' +
+      '<div class="flex" style="margin-top:8px">' +
+      '<button type="button" class="btn sm pri" id="t-makeup">Сделать день ' + ml + ' сегодня</button>' +
+      '<button type="button" class="btn sm ghost" id="t-forgive">Считать пропуском</button></div></div></div>';
+  }
   pendingBanners.forEach(t => { h += '<div class="note acc">' + ic("ic-bell", 16) + '<div>' + esc(t) + '</div></div>'; });
   if (plan.deload) h += '<div class="note">' + ic("ic-info", 16) + '<div>Неделя ' + plan.week + ' разгрузочная: объём срезан на 40%. Сила растёт на восстановлении.</div></div>';
 
@@ -1645,12 +1723,14 @@ function renderToday() {
     const done = state.walks.some(w => w.date === today && w.done);
     h += '<div class="day">Ходьба</div><div class="meta">30–40 минут спокойным темпом</div>' +
       '</div><div class="mark">' + ic("ic-check", 20) + '</div></div>' +
-      '<button type="button" class="btn ' + (done ? "" : "pri") + ' big" id="t-walk">' + (done ? "Отмечено" : "Отметить ходьбу") + '</button>';
+      '<button type="button" class="btn ' + (done ? "" : "pri") + ' big" id="t-walk">' + (done ? "Отмечено" : "Отметить ходьбу") + '</button>' +
+      '<button type="button" class="btn ghost" id="t-extra" style="width:100%;margin-top:8px">Начать тренировку · день ' + nextLetter() + '</button>';
   } else {
     h += '<div class="day">Отдых</div><div class="meta">Дальше: ' + esc(nextTrainLabel()) + '</div>' +
       '</div><div class="mark">' + Math.round(plan.week / 36 * 100) + '</div></div>' +
       '<div class="track"><i style="width:' + (plan.week / 36 * 100) + '%"></i></div>' +
-      '<div class="dim" style="font-size:12px;margin-top:6px">Неделя ' + plan.week + ' из 36 · фаза ' + plan.phase.n + ", " + esc(plan.phase.name) + '</div>';
+      '<div class="dim" style="font-size:12px;margin:6px 0 10px">Неделя ' + plan.week + ' из 36 · фаза ' + plan.phase.n + ", " + esc(plan.phase.name) + '</div>' +
+      '<button type="button" class="btn ghost" id="t-extra" style="width:100%">Начать тренировку · день ' + nextLetter() + '</button>';
   }
   h += '</div>';
 
@@ -1685,6 +1765,16 @@ function renderToday() {
   const go = $("#t-go");
   if (go) go.addEventListener("click", () => { if (state.active) showTab("workout"); else startWorkout(); });
   const wk = $("#t-walk"); if (wk) wk.addEventListener("click", toggleWalk);
+  const ex = $("#t-extra");
+  if (ex) ex.addEventListener("click", () => startWorkout({ letter: nextLetter(), makeupFor: missed[0] || null }));
+  const mk = $("#t-makeup");
+  if (mk) mk.addEventListener("click", () => startWorkout({ letter: nextLetter(), makeupFor: missed[0] }));
+  const fg = $("#t-forgive");
+  if (fg) fg.addEventListener("click", () => {
+    state.ui.forgiven = state.ui.forgiven || {};
+    state.ui.forgiven[missed[0]] = true;
+    saveState(); renderToday(); toast("Ок, засчитал как пропуск");
+  });
   const all = $("#t-all"); if (all) all.addEventListener("click", () => showTab("workout"));
   const roll = $("#t-roll");
   if (roll) roll.addEventListener("click", () => {
@@ -2550,12 +2640,93 @@ const CHANNELS = [
 
 /* Короткие тексты «о главном» — своими словами, без внешних ссылок */
 const NOTES_TXT = [
-  { t: "Техника важнее количества", b: "Пять чистых подтягиваний дают больше, чем десять с рывками. Кривой повтор не просто «менее полезен» — он учит нервную систему неправильному движению, и потом это переучивать дольше, чем осваивать с нуля. Правило простое: как только техника поплыла, подход закончен, даже если в запасе оставались силы." },
-  { t: "Почему прогрессия, а не «до отказа»", b: "Отказ выматывает нервную систему и почти не добавляет силы, зато крадёт следующую тренировку. Поэтому в программе везде диапазон повторов: взял верхнюю границу во всех подходах — переходишь на следующую ступень и снова начинаешь с нижней. Так нагрузка растёт постоянно и предсказуемо, а не рывками." },
-  { t: "Сон — это и есть тренировка", b: "Сила растёт не на площадке, а ночью. Недосып бьёт по силовым показателям сильнее, чем пропуск одной тренировки, и заодно повышает тягу к еде. Отсюда и правило про кофеин не позже 16:00: банка в шесть вечера отнимает не бодрость, а глубокую фазу сна." },
-  { t: "Дефицит и сила одновременно", b: "На дефиците калорий сила растёт медленнее, но растёт — при двух условиях: белка достаточно (у тебя 155 г в день) и дефицит умеренный. Поэтому здесь −400 ккал, а не −800: с большим дефицитом вес уходит быстрее, но вместе с ним уходят и мышцы, и результаты в подтягиваниях." },
-  { t: "Разгрузочная неделя не пропуск", b: "Каждая 7-я неделя идёт с объёмом на 40% меньше. Это не лень и не откат: связки и нервная система восстанавливаются медленнее мышц, и без плановой разгрузки они догоняют вас травмой. После разгрузки показатели обычно не падают, а подрастают." },
-  { t: "Что делать с болью", b: "Мышечная боль через день после тренировки — нормально. Резкая боль в суставе, локте или плече во время движения — нет. В этом случае упражнение пропускается (в приложении есть причина «Боль»), а не «дожимается». Локти и запястья в калистенике страдают чаще всего, и почти всегда из-за спешки с элементами." }
+  /* --- Тренировки --- */
+  { g: "Тренировки", t: "Техника важнее количества", b: [
+    "Пять чистых подтягиваний дают больше, чем десять с рывками. Кривой повтор не просто «менее полезен» — он учит нервную систему неправильному движению, и переучивать потом дольше, чем осваивать с нуля.",
+    "Правило простое: как только техника поплыла, подход закончен, даже если в запасе оставались силы. В приложении можно записать меньше повторов, чем в плане — это честнее, чем приписать себе кривые."] },
+
+  { g: "Тренировки", t: "Почему прогрессия, а не «до отказа»", b: [
+    "Отказ выматывает нервную систему и почти не добавляет силы, зато крадёт следующую тренировку. Поэтому в программе везде диапазон повторов.",
+    "Взял верхнюю границу во всех рабочих подходах — приложение предложит следующую ступень, и повторы сбросятся к нижней границе. Это и есть двойная прогрессия: нагрузка растёт постоянно и предсказуемо, а не рывками до срыва."] },
+
+  { g: "Тренировки", t: "Зачем отдыхать три минуты", b: [
+    "В подтягиваниях и других тяжёлых упражнениях стоит 180 секунд отдыха, и это не опечатка. Силовая работа тратит запас креатинфосфата в мышце, а он восстанавливается 2–3 минуты. Отдохнул минуту — следующий подход будет на треть слабее, и вместо силы получится выносливость.",
+    "Если время поджимает, лучше убрать одно упражнение целиком, чем сокращать отдых во всех. Короткий отдых оставь для планок, hollow и пресса — там 60 секунд достаточно."] },
+
+  { g: "Тренировки", t: "Разминка: почему именно 8 минут", b: [
+    "Разминка нужна не для «растянуться», а чтобы поднять температуру мышц и смазать суставы. Холодное плечо в подтягиваниях и холодное запястье в planche lean — две самые частые точки, где всё заканчивается месячным перерывом.",
+    "Лопаточные подтягивания в разминке важнее всего остального: они включают широчайшие до того, как ты повиснешь под нагрузкой. Без них первый рабочий подход уходит на разогрев, то есть впустую."] },
+
+  { g: "Тренировки", t: "Разгрузочная неделя — не пропуск", b: [
+    "Каждая 7-я неделя идёт с объёмом на 40% меньше: подходов меньше, повторы те же. Это не лень и не откат.",
+    "Связки, сухожилия и нервная система восстанавливаются медленнее мышц. Без плановой разгрузки они догоняют не отдыхом, а травмой. После разгрузочной недели показатели обычно не падают, а подрастают — потому что наконец успели восстановиться."] },
+
+  { g: "Тренировки", t: "Пропустил тренировку — что делать", b: [
+    "Одна пропущенная тренировка ничего не решает. Программа не привязана к календарю жёстко: очередь A-B-A сдвигается, а не ломается. Пропустил день A в понедельник — во вторник на главном экране будет предложение наверстать его, и следующим всё равно пойдёт B.",
+    "Наверстать можно в любой день, даже в день ходьбы или в выходной: кнопка «Начать тренировку» есть всегда. Если наверстывать не хочешь — нажми «Считать пропуском», и приложение перестанет напоминать.",
+    "А вот 7 дней подряд без тренировок — уже другое дело. Тогда приложение предложит откатить ступени на одну вниз: возвращаться на прежний уровень безопаснее, чем прыгать туда, где ты был две недели назад."] },
+
+  { g: "Тренировки", t: "Сколько ждать результата", b: [
+    "Первые 4–6 недель сила растёт в основном за счёт нервной системы: мышцы почти не меняются, но повторов становится больше. Это нормально и это самый быстрый период — цени его.",
+    "Реальные ориентиры для тебя: 8 подтягиваний к концу 8-й недели, tuck front lever 15 секунд там же, первые негативы выхода силой ближе к 20-й неделе. Полный front lever и выход силой — это 6–9 месяцев честной работы, а не шесть недель.",
+    "Если за месяц ни в одном упражнении не прибавилось ни повтора — проблема почти всегда не в программе, а в сне, белке или в том, что подходы делаются до отказа."] },
+
+  { g: "Тренировки", t: "Зима и домашний режим", b: [
+    "Когда площадка отпадёт, включи домашний режим в разделе «Ещё». Тяга просядет — это неизбежно, дома её нечем нормально заменить. Поэтому приложение автоматически добавляет по два подхода к жимовым упражнениям и корпусу: сохраняем общий объём и не теряем форму.",
+    "Минимум, который стоит купить — турник в дверной проём. Он стоит как пара доставок и полностью закрывает тягу. Без него остаются тяга полотенцем под дверью и австралийские под столом: хуже, но лучше, чем ничего.",
+    "Зимой на улице разминка нужна вдвое дольше, а голый металл турника забирает тепло из ладоней за секунды. Перчатки решают проблему хвата, но снижают сцепление — на тяжёлых подходах лучше без них."] },
+
+  /* --- Питание --- */
+  { g: "Питание", t: "Дефицит и сила одновременно", b: [
+    "На дефиците калорий сила растёт медленнее, но растёт — при двух условиях: белка достаточно и дефицит умеренный.",
+    "Поэтому здесь −400 ккал, а не −800. С большим дефицитом вес уходит быстрее, но вместе с жиром уходят мышцы, а подтягивания — это упражнение, где ты поднимаешь собственный вес: потеря мышц бьёт по результату сразу.",
+    "Ориентир −0,4…0,5 кг в неделю. Если уходит быстрее двух недель подряд — добавь 150–200 ккал углеводов в тренировочные дни."] },
+
+  { g: "Питание", t: "Белок: сколько, зачем и откуда", b: [
+    "155 г в день — это примерно 1,8 г на килограмм веса. На дефиците белок нужен больше обычного: он и мышцы защищает, и насыщает лучше всего остального.",
+    "Практически это 4 приёма по 35–40 г. Ориентиры: 200 г куриной грудки — 46 г, 200 г творога 2% — 36 г, 3 яйца — 19 г, порция протеина — 24 г.",
+    "Самая частая дыра — завтрак и перекусы. Если первый приём в 11:00 состоит из хлеба с чем-то, ты уже отстал на 30 г и добрать их вечером тяжело физически."] },
+
+  { g: "Питание", t: "Как считать, когда лень взвешивать", b: [
+    "Взвешивать всё вечно невозможно, и не надо. Первые две-три недели взвешивай — не ради цифр, а чтобы натренировать глазомер. Дальше хватит оценки.",
+    "Рабочие ориентиры: ладонь без пальцев — примерно 100–120 г мяса; кулак — примерно 150–200 г готовой крупы; большой палец целиком — примерно 15 г масла или пасты.",
+    "Точность в пределах 10% для дефицита в 400 ккал вполне достаточна. Гораздо важнее не пропускать записи целиком: незаписанный день обычно и есть тот, который ломает неделю."] },
+
+  { g: "Питание", t: "Доставка — не враг", b: [
+    "Запрещать доставку бессмысленно, если ты заказываешь регулярно. Работает другое правило: доставка занимает ОДИН приём пищи из четырёх, остальные три собираются дома из базы.",
+    "Лучший заказ по белку на рубль — курица-гриль с гарниром из круп. Шаурма с курицей и двойным мясом, без соуса — это 600–700 ккал и 45 г белка, вполне рабочий вариант.",
+    "Убивают не блюда, а довески: сладкая газировка, картошка фри и соусы на майонезе легко добавляют 600 ккал, из которых ноль белка. Именно они, а не сама шаурма, ломают дневную норму."] },
+
+  { g: "Питание", t: "Энергетики: честная математика", b: [
+    "Обычная банка 0.5 л — это около 220 ккал и 52 г сахара. Две банки в день — 440 ккал, почти четверть дневной нормы, потраченная вообще мимо белка и сытости.",
+    "Переход на zero убирает эти калории целиком и не требует ни силы воли, ни изменения привычек. Это самое дешёвое улучшение во всём рационе.",
+    "Со временем важнее второе правило: не позже 16:00. Период полувыведения кофеина — 5–6 часов, то есть от банки в 18:00 к твоему отбою в 23:00 в крови остаётся половина. Сон становится поверхностным, а восстановление и рост силы происходят именно в нём."] },
+
+  /* --- Тело и восстановление --- */
+  { g: "Тело и восстановление", t: "Сон — это и есть тренировка", b: [
+    "Сила растёт не на площадке, а ночью. Исследования недосыпа стабильно показывают падение силовых показателей и рост тяги к калорийной еде — то есть недосып бьёт сразу по обеим целям.",
+    "Твой режим — отбой 23:00–00:00, подъём 8:00–9:00 — это нормальные 8–9 часов, их достаточно. Главный враг здесь не время отбоя, а вечерний кофеин и экран.",
+    "Если выбирать между «поспать лишний час» и «сходить на тренировку невыспавшимся» — в 90% случаев выигрывает сон."] },
+
+  { g: "Тело и восстановление", t: "Что делать с болью", b: [
+    "Мышечная боль через день после тренировки — нормально, особенно в первые недели. Она тупая, разлитая по мышце и проходит за пару дней.",
+    "Резкая боль в суставе, локте или плече во время движения — не нормально. Такое упражнение пропускается (в приложении есть причина «Боль»), а не «дожимается». Причина пропуска попадает в историю, и по ней потом видно закономерность.",
+    "Правило: боль, которая уменьшается по ходу разминки — обычно можно работать. Боль, которая по ходу нарастает — стоп на сегодня."] },
+
+  { g: "Тело и восстановление", t: "Локти и запястья — слабое место", b: [
+    "В калистенике чаще всего ломаются не мышцы, а локти и запястья: сухожилия адаптируются в разы медленнее мышц, и именно поэтому нельзя перепрыгивать ступени прогрессии.",
+    "Локоть страдает от подтягиваний с полностью выключенной рукой внизу и от резких взрывных повторов. Держи внизу минимальное напряжение, не «падай» в вис.",
+    "Запястья страдают от planche lean и псевдо-планш-отжиманий. Две минуты работы с запястьями в конце дня B — не факультатив, а обязательная часть: в третьей фазе нагрузка на них вырастет в разы."] },
+
+  { g: "Тело и восстановление", t: "Хват и мозоли", b: [
+    "Хват часто становится ограничителем раньше спины: руки разжимаются, хотя тянуть ещё есть чем. Поэтому в дне A стоит вис на максимум — это самый простой способ его подтянуть.",
+    "Мозоли неизбежны, но их можно держать под контролем: раз в неделю спиливать пилкой огрубевший бугорок. Именно за высокий бугор мозоль и срывается.",
+    "Хват большим пальцем в обхват безопаснее «обезьяньего»: на мокром или обледеневшем турнике это разница между подходом и падением."] },
+
+  { g: "Тело и восстановление", t: "Сидячая работа: плечи и грудной отдел", b: [
+    "Восемь часов за ПК укорачивают грудные мышцы и выключают лопатки. Из-за этого страдают именно те движения, что стоят у тебя в приоритете: подтягивания и front lever держатся на лопатках.",
+    "Самое полезное — не растяжка, а перерывы: раз в час встать и на 30 секунд свести лопатки, выпрямив грудной отдел. Это работает лучше, чем 20 минут растяжки вечером.",
+    "5000–7000 шагов в день — это мало. Дни ходьбы во вторник и четверг стоят в плане не для похудения, а чтобы кровь дошла до мышц между тренировками: восстановление после лёгкой активности идёт заметно быстрее, чем после лежания."] }
 ];
 
 /* --- Рендер схемы и карточки техники --- */
@@ -2614,9 +2785,15 @@ function renderLearn() {
       '<span class="pl">' + ic("ic-play", 16) + '</span><span class="tx"><b>' + esc(c.n) + '</b>' +
       (c.ru ? ' <span class="pill acc">рус</span>' : "") + '<em>' + esc(c.d) + '</em></span></a>').join("") + '</div>';
 
-  h += '<div class="sec-h">Коротко о главном</div>' +
-    NOTES_TXT.map(n => '<details class="acc"><summary>' + esc(n.t) + '</summary><div class="in">' +
-      '<p class="mid" style="font-size:13.5px;margin:0">' + esc(n.b) + '</p></div></details>').join("");
+  const ngr = [];
+  NOTES_TXT.forEach(x => { if (ngr.indexOf(x.g) < 0) ngr.push(x.g); });
+  ngr.forEach(g => {
+    h += '<div class="sec-h">' + esc(g) + '</div>' +
+      NOTES_TXT.filter(x => x.g === g).map(x =>
+        '<details class="acc"><summary>' + esc(x.t) + '</summary><div class="in">' +
+        x.b.map(p => '<p class="mid" style="font-size:13.5px;margin:0 0 8px">' + esc(p) + '</p>').join("") +
+        '</div></details>').join("");
+  });
 
   el.innerHTML = h;
   $$("[data-g]", el).forEach(b => b.addEventListener("click", () => openGuide(b.dataset.g)));
