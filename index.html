@@ -1014,12 +1014,22 @@ function basePlanFor(dateStr) {
 /* Ручной выбор на конкретный день перебивает рекомендацию */
 function overrideFor(dateStr) { return (state.overrides || {})[dateStr] || null; }
 function dayPlanFor(dateStr) {
-  const ov = overrideFor(dateStr);
-  if (!ov) return basePlanFor(dateStr);
   const w = weekNumber(dateStr);
-  const base = { week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w), manual: true };
-  if (ov.kind === "train") return Object.assign(base, { kind: "train", day: ov.day || letterFor(dateStr) });
-  return Object.assign(base, { kind: ov.kind });
+  const base = { week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w) };
+  /* 1. Ручной выбор — главный: решает человек */
+  const ov = overrideFor(dateStr);
+  if (ov) {
+    const m = Object.assign({ manual: true }, base);
+    if (ov.kind === "train") return Object.assign(m, { kind: "train", day: ov.day || letterFor(dateStr) });
+    return Object.assign(m, { kind: ov.kind });
+  }
+  /* 2. Реально сделанная или идущая тренировка важнее расписания:
+        иначе в день ходьбы норма калорий осталась бы выходной */
+  const done = state.sessions.find(s => s.date === dateStr && s.day);
+  const act = state.active && state.active.date === dateStr ? state.active : null;
+  if (done || act) return Object.assign({ kind: "train", day: (done || act).day, actual: true }, base);
+  /* 3. Иначе — рекомендация по расписанию */
+  return basePlanFor(dateStr);
 }
 /* Тренировочный ли это день с учётом ручного выбора */
 function isTrainingDay(dateStr) {
@@ -1538,6 +1548,12 @@ function startWorkout(o) {
   const letter = o.letter || (plan.kind === "train" ? null : nextLetter());
   const s = buildSession(isoDate(), letter, o.makeupFor);
   if (!s) { toast("Не получилось собрать тренировку", "bad"); return; }
+  /* запуск тренировки вне расписания = выбор «сегодня тренировка»,
+     иначе нормы КБЖУ остались бы как в выходной */
+  if (plan.kind !== "train") {
+    state.overrides = state.overrides || {};
+    state.overrides[isoDate()] = { kind: "train", day: s.day };
+  }
   const go = () => { state.active = s; state.ui.openEx = 0; saveState(); showTab("workout"); };
   if (state.sessions.some(x => x.date === s.date)) {
     modal({ title: "Уже записана", text: "На сегодня есть завершённая тренировка. Начать ещё одну?", okText: "Начать" })
