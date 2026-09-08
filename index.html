@@ -201,6 +201,8 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-s);padding:2px;gap:2px}
 .seg button{padding:5px 10px;font-size:12px;font-weight:500;border-radius:5px;color:var(--ink-3)}
 .seg button[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:var(--lift)}
+.seg.full{display:flex;width:100%}
+.seg.full button{flex:1;text-align:center;justify-content:center;padding:8px 4px}
 :root[data-theme="dark"] .seg button[aria-pressed=true]{background:var(--surface-3);color:var(--ink)}
 
 .toggle{width:42px;height:24px;border-radius:12px;background:var(--surface-3);border:1px solid var(--line-2);position:relative;flex:none;transition:background .15s}
@@ -579,9 +581,37 @@ function ex(key, name, sets, min, max, unit, rest, chain, tip, home) {
 }
 
 /* --- ТРИ ФАЗЫ, 36 НЕДЕЛЬ --- */
+const TOTAL_WEEKS = 39;
+
 const PHASES = [
   {
-    n: 1, name: "База", from: 1, to: 8,
+    n: 0, name: "Врабатывание", from: 1, to: 3,
+    goal: "5 подтягиваний, 15 отжиманий, планка 45 сек, hollow hold 30 сек и привычка выходить три раза в неделю",
+    intro: true,
+    days: {
+      A: [
+        ex("pullups", "Подтягивания прямым хватом", 3, 2, 3, "reps", 150, "pull", "Три подхода, не пять. Останавливайся за повтор до отказа — на этой неделе задача привыкнуть, а не выложиться.", "Турник в дверном проёме или тяга полотенцем под дверью"),
+        ex("pull_neg", "Негативы подтягиваний", 3, 3, 3, "reps", 120, "pull", "Запрыгнул наверх и опускайся ровно 5 секунд. Именно негативы дают первые новые повторы.", "Негативы на турнике в проёме"),
+        ex("rows_aus", "Австралийские подтягивания", 3, 6, 10, "reps", 90, "pull", "Чем вертикальнее тело, тем легче — начни с высокой перекладины.", "Тяга под столом или между стульев со шваброй"),
+        ex("pushups", "Отжимания от пола", 3, 6, 10, "reps", 90, "push", "Корпус доской. Если 6 чистых не выходит — делай с колен, это не стыдно.", null),
+        ex("squats", "Приседания без веса", 3, 12, 20, "legreps", 90, "legs", "Пятки на полу, колени вдоль стоп, вниз до параллели бедра с полом.", null),
+        ex("hollow", "Hollow hold", 2, 15, 20, "sec", 60, "core", "Поясница прижата к полу. Не держится — согни колени сильнее.", null),
+        ex("dead_hang", "Вис на прямых руках", 2, 20, 999, "sec", 60, "pull", "Просто вис до предела хвата. Плечи не задирай к ушам.", "Вис на турнике в проёме")
+      ],
+      B: [
+        ex("pushups", "Отжимания от пола", 4, 6, 10, "reps", 120, "push", "Локти под 45°, грудь до пола. Лучше меньше и чисто.", null),
+        ex("chinups", "Подтягивания обратным хватом", 3, 2, 3, "reps", 150, "pull", "Обратным хватом обычно выходит на повтор-два больше — используй это.", "Турник в дверном проёме"),
+        ex("bench_dips", "Обратные отжимания от стула", 3, 8, 12, "reps", 90, "push", "Руки на сиденье за спиной, таз идёт вниз вдоль стула. Это подводка к брусьям.", "Обратные отжимания от дивана"),
+        ex("planche_lean", "Planche lean", 3, 10, 15, "sec", 90, "planche", "Упор лёжа, руки прямые, плечи чуть впереди кистей. Пока чуть-чуть.", null),
+        ex("lunges", "Выпады назад", 3, 8, 10, "legreps", 90, "legs", "Шаг назад подлиннее, колено мягко к полу, корпус ровный.", null),
+        ex("knee_raises_floor", "Подъёмы коленей лёжа", 3, 10, 15, "reps", 60, "core", "Лёжа на спине, поясница прижата, колени к груди без рывка.", null),
+        ex("plank", "Планка", 3, 20, 30, "sec", 60, "core", "Таз не провисает и не задирается. 30 секунд честно лучше минуты кое-как.", null),
+        ex("wrists", "Растяжка и укрепление запястий", 1, 2, 2, "min", 0, "other", "Опора на ладони и на тыльную сторону, круги без боли.", null)
+      ]
+    }
+  },
+  {
+    n: 1, name: "База", from: 4, to: 11,
     goal: "8 подтягиваний, 20 отжиманий, планка 60 сек, hollow hold 45 сек, уверенный tuck front lever 15 сек",
     days: {
       A: [
@@ -607,7 +637,7 @@ const PHASES = [
     }
   },
   {
-    n: 2, name: "Сила", from: 9, to: 20,
+    n: 2, name: "Сила", from: 12, to: 23,
     goal: "12 подтягиваний, подтягивания до груди, advanced tuck front lever 15 сек, planche lean 45 сек, первые негативы выхода силой",
     days: {
       A: [
@@ -631,7 +661,7 @@ const PHASES = [
     }
   },
   {
-    n: 3, name: "Элементы", from: 21, to: 36,
+    n: 3, name: "Элементы", from: 24, to: 39,
     goal: "straddle front lever, чистый выход силой на две, tuck planche 10 сек",
     days: {
       A: [
@@ -663,8 +693,6 @@ const FOODS = [
   { key: "beef", name: "Говядина, вырезка", kcal: 190, p: 21, f: 12, c: 0, grp: "Мясо" },
   { key: "pork", name: "Свинина, карбонад", kcal: 200, p: 20, f: 13, c: 0, grp: "Мясо" },
   { key: "egg", name: "Яйцо куриное (1 шт ≈ 55 г)", kcal: 143, p: 12.7, f: 9.7, c: 0.7, grp: "Молочное и яйца" },
-  { key: "cottage2", name: "Творог 2%", kcal: 103, p: 18, f: 2, c: 3.3, grp: "Молочное и яйца" },
-  { key: "cottage5", name: "Творог 5%", kcal: 121, p: 17, f: 5, c: 3, grp: "Молочное и яйца" },
   { key: "greek_yog", name: "Греческий йогурт 2%", kcal: 73, p: 9, f: 2, c: 4, grp: "Молочное и яйца" },
   { key: "milk", name: "Молоко 2.5%", kcal: 52, p: 2.9, f: 2.5, c: 4.7, grp: "Молочное и яйца" },
   { key: "cheese", name: "Сыр твёрдый 45%", kcal: 360, p: 25, f: 29, c: 0, grp: "Молочное и яйца" },
@@ -702,23 +730,53 @@ const FOODS = [
 
 /* --- Готовые блюда: добавление в один тап --- */
 const DISHES = [
-  { key: "d_omelet", name: "Омлет-старт", made: "3 яйца + 100 г творога 5% + 60 г цельнозернового хлеба + огурец", kcal: 505, p: 41, f: 32, c: 29 },
-  { key: "d_chicken_rice", name: "Курица-рис", made: "200 г грудки + 80 г риса + 200 г овощей + 5 г масла", kcal: 580, p: 54, f: 8, c: 68 },
-  { key: "d_mince_buck", name: "Фарш-гречка", made: "150 г фарша 10% + 70 г гречки + салат", kcal: 550, p: 37, f: 21, c: 47 },
-  { key: "d_turkey_pasta", name: "Индейка-паста", made: "200 г индейки + 80 г макарон + помидоры", kcal: 530, p: 54, f: 6, c: 60 },
-  { key: "d_chicken_potato", name: "Курица-картофель", made: "200 г грудки + 300 г картофеля + салат", kcal: 480, p: 52, f: 5, c: 55 },
-  { key: "d_cottage_snack", name: "Творожный перекус", made: "200 г творога 2% + банан + 15 г арахисовой пасты", kcal: 390, p: 41, f: 13, c: 32 },
-  { key: "d_oats_yog", name: "Овсянка с йогуртом", made: "60 г хлопьев + 200 г греческого йогурта + яблоко", kcal: 415, p: 25, f: 11, c: 55 },
+  { key: "d_omelet", name: "Яичница-старт", made: "4 яйца + 30 г твёрдого сыра + 60 г цельнозернового хлеба + огурец", kcal: 580, p: 42, f: 32, c: 30, cost: 2 },
+  { key: "d_eggs_lavash", name: "Яичница с лавашом", made: "4 яйца + 60 г тонкого лаваша + помидор", kcal: 495, p: 34, f: 22, c: 39, cost: 1 },
+  { key: "d_chicken_rice", name: "Курица-рис", made: "200 г грудки + 80 г риса + 200 г овощей + 5 г масла", kcal: 580, p: 54, f: 8, c: 68, cost: 2 },
+  { key: "d_mince_buck", name: "Фарш-гречка", made: "150 г фарша 10% + 70 г гречки + салат", kcal: 550, p: 37, f: 21, c: 47, cost: 2 },
+  { key: "d_turkey_pasta", name: "Индейка-паста", made: "200 г индейки + 80 г макарон + помидоры", kcal: 530, p: 54, f: 6, c: 60, cost: 2 },
+  { key: "d_chicken_potato", name: "Курица-картофель", made: "200 г грудки + 300 г картофеля + салат", kcal: 480, p: 52, f: 5, c: 55, cost: 2 },
+  { key: "d_yog_protein", name: "Йогурт-перекус", made: "250 г греческого йогурта 2% + 20 г протеина + банан", kcal: 375, p: 40, f: 6, c: 37, cost: 3 },
+  { key: "d_yog_pb", name: "Йогурт с арахисовой пастой", made: "250 г греческого йогурта 2% + банан + 15 г арахисовой пасты", kcal: 385, p: 28, f: 13, c: 37, cost: 2 },
+  { key: "d_yog_nuts", name: "Йогурт с орехами", made: "250 г греческого йогурта 2% + 20 г грецких орехов + мёд", kcal: 345, p: 26, f: 18, c: 19, cost: 3 },
+  { key: "d_shawarma", name: "Шаурма домашняя", made: "80 г лаваша + 200 г грудки + овощи + йогурт вместо соуса", kcal: 505, p: 59, f: 6, c: 53, cost: 2 },
+  { key: "d_chicken_pasta", name: "Курица-паста", made: "200 г грудки + 80 г макарон + помидоры + 5 г масла", kcal: 570, p: 57, f: 10, c: 63, cost: 2 },
+  { key: "d_pork_potato", name: "Свинина-картофель", made: "150 г карбоната + 300 г картофеля + салат", kcal: 540, p: 37, f: 20, c: 52, cost: 3 },
+  { key: "d_turkey_buck", name: "Индейка-гречка", made: "200 г индейки + 70 г гречки + овощи", kcal: 470, p: 54, f: 7, c: 49, cost: 2 },
+  { key: "d_mince_lentils", name: "Фарш с чечевицей", made: "100 г фарша 10% + 60 г чечевицы + морковь и лук", kcal: 435, p: 35, f: 13, c: 44, cost: 2 },
+  { key: "d_sandwich_chicken", name: "Бутерброды с курицей", made: "80 г цельнозернового хлеба + 150 г грудки + 20 г сыра + огурец", kcal: 445, p: 48, f: 11, c: 37, cost: 2 },
+  { key: "d_beans_eggs", name: "Фасоль с яйцами", made: "200 г консервированной фасоли + 2 яйца + 40 г лаваша", kcal: 465, p: 31, f: 12, c: 57, cost: 1 },
+  { key: "d_thighs_buck", name: "Бёдра с гречкой", made: "200 г куриного бедра без кожи + 70 г гречки + овощи", kcal: 590, p: 48, f: 23, c: 49, cost: 1 },
+  { key: "d_eggs_potato", name: "Яйца с картошкой", made: "4 яйца + 250 г картофеля + лук", kcal: 525, p: 34, f: 22, c: 49, cost: 1 },
+  { key: "d_chicken_beans", name: "Курица с фасолью", made: "150 г грудки + 200 г консервированной фасоли + овощи", kcal: 385, p: 49, f: 4, c: 38, cost: 1 },
+  { key: "d_oats_milk", name: "Овсянка на молоке", made: "70 г хлопьев + 250 мл молока + банан + 10 г мёда", kcal: 530, p: 18, f: 11, c: 87, cost: 1 },
+  { key: "d_oats_yog", name: "Овсянка с йогуртом", made: "60 г хлопьев + 200 г греческого йогурта + яблоко", kcal: 415, p: 25, f: 11, c: 55, cost: 2 },
   { key: "d_shake", name: "Шейк", made: "30 г протеина + 250 мл молока + банан", kcal: 350, p: 32, f: 8, c: 35 }
 ];
 
-/* --- Шаблон дня: принимается целиком одной кнопкой --- */
-const DAY_TEMPLATE = [
-  { time: "11:00", dish: "d_omelet" },
-  { time: "15:00", dish: "d_chicken_rice" },
-  { time: "18:00", dish: "d_cottage_snack" },
-  { time: "21:00", dish: "d_mince_buck" }
+/* --- Шаблоны дня: пять вариантов, любой принимается одной кнопкой --- */
+const DAY_TEMPLATES = [
+  { key: "std", name: "Базовый", note: "Ровный день с готовкой",
+    meals: [["11:00", "d_omelet"], ["15:00", "d_chicken_rice"], ["18:00", "d_yog_protein"], ["21:00", "d_mince_buck"]], cost: 3 },
+  { key: "meat", name: "Мясной", note: "Побольше красного мяса",
+    meals: [["11:00", "d_eggs_lavash"], ["15:00", "d_pork_potato"], ["18:00", "d_yog_nuts"], ["21:00", "d_turkey_buck"]] },
+  { key: "fast", name: "Без готовки", note: "Ничего варить не надо",
+    meals: [["11:00", "d_oats_yog"], ["15:00", "d_sandwich_chicken"], ["18:00", "d_shake"], ["21:00", "d_beans_eggs"]] },
+  { key: "delivery", name: "С доставкой", note: "Один заказ вписан в норму",
+    meals: [["11:00", "d_eggs_lavash"], ["15:00", "d_shawarma"], ["18:00", "d_yog_protein"], ["21:00", "d_chicken_potato"]] },
+  { key: "cheap", name: "Бюджетный", note: "Самый дешёвый белок: яйца, бедро, фасоль",
+    meals: [["11:00", "d_eggs_potato"], ["15:00", "d_thighs_buck"], ["18:00", "d_yog_pb"], ["21:00", "d_chicken_beans"]] },
+  { key: "train", name: "Тренировочный", note: "Больше углеводов под нагрузку",
+    meals: [["11:00", "d_oats_milk"], ["15:00", "d_chicken_pasta"], ["18:00", "d_shake"], ["21:00", "d_mince_lentils"]] }
 ];
+function costMark(c) { return c ? "₽".repeat(c) : ""; }
+function templateTotals(t) {
+  return t.meals.reduce((a, m) => {
+    const d = DISHES.find(x => x.key === m[1]);
+    if (d) { a.kcal += d.kcal; a.p += d.p; a.f += d.f; a.c += d.c; }
+    return a;
+  }, { kcal: 0, p: 0, f: 0, c: 0 });
+}
 
 /* --- Правила доставки: справочник, а не запрет --- */
 const DELIVERY_RULES = [
@@ -773,10 +831,12 @@ function defaultState() {
     program: {
       currentPhase: 1, currentWeek: 1, startedAt: today,
       /* стартовые ступени подставлены из нормативов замера 07.09.2026 */
+      confirmedStart: false,
       ladders: { pull: "pullups_3", push: "pushups_std", frontLever: "hollow", planche: "lean30", legs: "squat", core: "plank60" },
       deferred: {}   // chain -> ISO-дата, до которой предложение усложнения не показываем
     },
     sessions: [],
+    overrides: {},    // ручной выбор «что сегодня» по датам
     active: null,     // незавершённая тренировка
     walks: [],
     meals: [],
@@ -841,6 +901,7 @@ function migrate(obj) {
   st.settings.reminders = Object.assign({}, d.settings.reminders, (obj.settings || {}).reminders);
   st.ui = Object.assign({ dismissed: {}, forgiven: {} }, obj.ui);
   st.ui.forgiven = st.ui.forgiven || {};
+  st.overrides = Object.assign({}, obj.overrides);
   ["sessions", "walks", "meals", "water", "caffeine", "body", "tests", "customFoods"].forEach(k => {
     if (!Array.isArray(st[k])) st[k] = d[k];
   });
@@ -932,7 +993,7 @@ function missedWorkouts() {
   for (let i = 1; i <= 14; i++) {
     const d = addDays(today, -i);
     if (d < state.program.startedAt) break;
-    if (!isTrainDow(d)) continue;
+    if (!isTrainingDay(d)) continue;
     if (state.sessions.some(s => s.date === d)) continue;
     if (makeupCovers(d) || forgiven[d]) continue;
     out.push(d);
@@ -940,7 +1001,8 @@ function missedWorkouts() {
   return out;
 }
 
-function dayPlanFor(dateStr) {
+/* Что приложение СОВЕТУЕТ на этот день (без учёта ручного выбора) */
+function basePlanFor(dateStr) {
   const dow = dowMon1(dateStr);
   const w = weekNumber(dateStr);
   if (isTrainDow(dateStr)) {
@@ -948,6 +1010,31 @@ function dayPlanFor(dateStr) {
   }
   if (dow === 2 || dow === 4) return { kind: "walk", week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w) };
   return { kind: "rest", week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w) };
+}
+/* Ручной выбор на конкретный день перебивает рекомендацию */
+function overrideFor(dateStr) { return (state.overrides || {})[dateStr] || null; }
+function dayPlanFor(dateStr) {
+  const ov = overrideFor(dateStr);
+  if (!ov) return basePlanFor(dateStr);
+  const w = weekNumber(dateStr);
+  const base = { week: w, phase: phaseOfWeek(w), deload: isDeloadWeek(w), manual: true };
+  if (ov.kind === "train") return Object.assign(base, { kind: "train", day: ov.day || letterFor(dateStr) });
+  return Object.assign(base, { kind: ov.kind });
+}
+/* Тренировочный ли это день с учётом ручного выбора */
+function isTrainingDay(dateStr) {
+  const ov = overrideFor(dateStr);
+  return ov ? ov.kind === "train" : isTrainDow(dateStr);
+}
+function setDayKind(v) {
+  const t = isoDate();
+  state.overrides = state.overrides || {};
+  if (v === "auto") delete state.overrides[t];
+  else if (v === "A" || v === "B") state.overrides[t] = { kind: "train", day: v };
+  else state.overrides[t] = { kind: v };
+  saveState();
+  renderScreen(state.ui.tab);
+  toast(v === "auto" ? "Вернул рекомендацию приложения" : "Сегодня: " + ({ A: "тренировка A", B: "тренировка B", walk: "ходьба", rest: "отдых" }[v] || v));
 }
 
 /* Норма ккал на дату: тренировочный день или нет */
@@ -977,12 +1064,26 @@ function maybeRecalcTargets() {
 }
 
 /* --- Список упражнений на день с учётом режима и разгрузки --- */
+/* Первые две недели объём срезан: тело и связки не готовы к полной норме.
+   Неделя 1 — 70%, неделя 2 — 85%, дальше полный объём. */
+/* Честная оценка длительности: подходы плюс отдых плюс 8 минут разминки */
+function estMinutes(list) {
+  const sec = list.reduce((a, e) => a + e.sets * ((e.rest || 60) + 45), 0);
+  return Math.max(15, Math.round((sec + 480) / 300) * 5);
+}
+function rampFactor(week) {
+  if (week <= 1) return 0.7;
+  if (week === 2) return 0.85;
+  return 1;
+}
 function exercisesFor(plan) {
   if (plan.kind !== "train") return [];
   const home = state.profile.mode === "home";
+  const ramp = rampFactor(plan.week);
   let list = plan.phase.days[plan.day].map(e => {
     const o = Object.assign({}, e);
     if (home && e.home) { o.name = e.home; o.substituted = true; }
+    if (ramp < 1 && e.unit !== "min") o.sets = Math.max(1, Math.round(e.sets * ramp));
     if (plan.deload) o.sets = Math.max(1, Math.round(e.sets * 0.6)); // объём −40%
     /* Домашний режим: тяга ограничена, поэтому +2 подхода жиму и корпусу */
     if (home && (e.chain === "push" || e.chain === "core") && e.unit !== "min") o.sets = o.sets + 2;
@@ -1216,7 +1317,7 @@ function showTab(id, keepScroll) {
 }
 function renderTopbar() {
   const tab = TABS.find(t => t.id === state.ui.tab) || TABS[0];
-  const w = Math.min(36, weekNumber(isoDate()));
+  const w = Math.min(TOTAL_WEEKS, weekNumber(isoDate()));
   const ph = phaseOfWeek(w);
   $("#tb-title").textContent = tab.t;
   $("#tb-sub").textContent = "Н" + w + " · Ф" + ph.n + (isDeloadWeek(w) ? " · разгрузка" : "");
@@ -1336,8 +1437,8 @@ function weightChart(cv) {
       .map(b => ({ x: daysBetween(start, b.date), y: b.weightKg }));
     const w0 = pts.length ? pts[0].y : state.profile.startWeightKg;
     const fc = [];
-    for (let k = 0; k <= 36; k++) fc.push({ x: k * 7, y: Math.max(75, w0 - 0.4 * k) });
-    const maxX = 252;
+    for (let k = 0; k <= TOTAL_WEEKS; k++) fc.push({ x: k * 7, y: Math.max(75, w0 - 0.4 * k) });
+    const maxX = TOTAL_WEEKS * 7;
     const ys = pts.map(p => p.y).concat(fc.map(p => p.y));
     let lo = Math.min.apply(null, ys) - 1, hi = Math.max.apply(null, ys) + 1;
     if (!isFinite(lo)) { lo = 70; hi = 90; }
@@ -1352,7 +1453,7 @@ function weightChart(cv) {
       c.beginPath(); c.moveTo(pad.l, y); c.lineTo(w - pad.r, y); c.stroke();
       c.fillText(String(v), 2, y + 3.5);
     }
-    for (let k = 0; k <= 36; k += 6) c.fillText("н" + k, X(k * 7) - 6, h - 4);
+    for (let k = 0; k <= TOTAL_WEEKS; k += 6) c.fillText("н" + k, X(k * 7) - 6, h - 4);
     c.setLineDash([3, 4]); c.strokeStyle = dim; c.lineWidth = 1.5;
     c.beginPath(); fc.forEach((p, i) => i ? c.lineTo(X(p.x), Y(p.y)) : c.moveTo(X(p.x), Y(p.y))); c.stroke();
     c.setLineDash([]);
@@ -1615,6 +1716,7 @@ function renderWorkout() {
   const list = exercisesFor(plan);
   el.innerHTML =
     (state.profile.mode === "home" ? homeNote() : "") +
+    (plan.phase.intro ? '<div class="note">' + ic("ic-info", 16) + '<div><b>Вводный блок, неделя ' + plan.week + ' из 3.</b> Меньше подходов и упражнения попроще: сначала врабатываемся, потом нагружаемся.</div></div>' : "") +
     (plan.deload ? '<div class="note warn">' + ic("ic-info", 16) + '<div>Разгрузочная неделя: подходов на 40% меньше, повторы те же.</div></div>' : "") +
     '<div class="card"><div class="between" style="margin-bottom:10px"><h3>День ' + plan.day + ' · ' + (plan.day === "A" ? "тяга" : "жим") + '</h3>' +
     '<span class="pill">' + list.length + ' упражнений</span></div>' +
@@ -1654,7 +1756,7 @@ function homeNote() {
 function nextTrainLabel() {
   for (let i = 1; i <= 7; i++) {
     const d = addDays(isoDate(), i);
-    if (isTrainDow(d)) return DOW_SHORT[dowMon1(d)] + ", день " + letterFor(d);
+    if (isTrainingDay(d)) return DOW_SHORT[dowMon1(d)] + ", день " + letterFor(d);
   }
   return "по плану";
 }
@@ -1667,6 +1769,14 @@ function toggleWalk() {
 /* =====================================================================
    БЛОК 7. СЕГОДНЯ
    ===================================================================== */
+function confirmStart(date) {
+  state.program.startedAt = date;
+  state.program.confirmedStart = true;
+  state.ui.forgiven = {};
+  saveState(true);
+  renderTopbar(); renderToday();
+  toast("Старт программы: " + humanDate(date), "good");
+}
 function metricCell(label, value, sub, bar, cls) {
   return '<div class="metric"><div class="lb"><span>' + esc(label) + '</span>' +
     '<span class="vl' + (cls ? " " + cls : "") + '">' + value + '</span></div>' +
@@ -1694,6 +1804,17 @@ function renderToday() {
       '<button type="button" class="btn sm" id="t-roll" style="margin-top:8px">Откатить</button></div>' +
       '<button type="button" class="iconbtn sm x" id="t-gx" aria-label="Скрыть">' + ic("ic-x", 15) + '</button></div>';
   }
+  /* дату старта приложение не назначает молча */
+  if (!state.program.confirmedStart) {
+    h += '<div class="note acc">' + ic("ic-info", 16) +
+      '<div><b>С какого дня считаем старт?</b> Сейчас это ' + esc(humanDate(state.program.startedAt)) +
+      ' — просто потому, что приложение открыли в этот день. От даты старта считаются недели, фазы и разгрузки, так что лучше поправить сразу.' +
+      '<div class="flex" style="margin-top:8px">' +
+      '<button type="button" class="btn sm pri" id="st-today">Старт сегодня</button>' +
+      '<button type="button" class="btn sm" id="st-pick">Другая дата</button>' +
+      '<button type="button" class="btn sm ghost" id="st-ok">Всё верно</button></div></div></div>';
+  }
+
   /* пропущенная тренировка не исчезает молча */
   const missed = missedWorkouts();
   if (missed.length) {
@@ -1707,6 +1828,13 @@ function renderToday() {
       '<button type="button" class="btn sm ghost" id="t-forgive">Считать пропуском</button></div></div></div>';
   }
   pendingBanners.forEach(t => { h += '<div class="note acc">' + ic("ic-bell", 16) + '<div>' + esc(t) + '</div></div>'; });
+  if (plan.phase.intro) {
+    const rf = Math.round(rampFactor(plan.week) * 100);
+    h += '<div class="note">' + ic("ic-info", 16) +
+      '<div><b>Вводный блок, неделя ' + plan.week + ' из 3.</b> Объём специально урезан' +
+      (rf < 100 ? " до " + rf + "% — на следующей неделе будет больше" : " — со следующей недели начинается основная программа") +
+      '. Задача сейчас не выложиться, а приучить связки и не отбить желание на первой же тренировке.</div></div>';
+  }
   if (plan.deload) h += '<div class="note">' + ic("ic-info", 16) + '<div>Неделя ' + plan.week + ' разгрузочная: объём срезан на 40%. Сила растёт на восстановлении.</div></div>';
 
   /* главная карточка: что делать сегодня */
@@ -1715,7 +1843,7 @@ function renderToday() {
     const list = exercisesFor(plan);
     const doneToday = state.sessions.some(s => s.date === today);
     h += '<div class="day">День ' + plan.day + '</div><div class="meta">' +
-      (plan.day === "A" ? "Тяга в приоритете" : "Жим в приоритете") + ' · ' + list.length + ' упражнений · ~55 мин</div>';
+      (plan.day === "A" ? "Тяга в приоритете" : "Жим в приоритете") + ' · ' + list.length + ' упражнений · ~' + estMinutes(list) + ' мин</div>';
     h += '</div><div class="mark">' + plan.day + '</div></div>';
     h += '<button type="button" class="btn pri big" id="t-go">' +
       (state.active ? "Продолжить тренировку" : doneToday ? "Тренировка сделана · открыть" : "Начать тренировку") + '</button>';
@@ -1727,12 +1855,28 @@ function renderToday() {
       '<button type="button" class="btn ghost" id="t-extra" style="width:100%;margin-top:8px">Начать тренировку · день ' + nextLetter() + '</button>';
   } else {
     h += '<div class="day">Отдых</div><div class="meta">Дальше: ' + esc(nextTrainLabel()) + '</div>' +
-      '</div><div class="mark">' + Math.round(plan.week / 36 * 100) + '</div></div>' +
-      '<div class="track"><i style="width:' + (plan.week / 36 * 100) + '%"></i></div>' +
-      '<div class="dim" style="font-size:12px;margin:6px 0 10px">Неделя ' + plan.week + ' из 36 · фаза ' + plan.phase.n + ", " + esc(plan.phase.name) + '</div>' +
+      '</div><div class="mark">' + Math.round(plan.week / TOTAL_WEEKS * 100) + '</div></div>' +
+      '<div class="track"><i style="width:' + Math.min(100, plan.week / TOTAL_WEEKS * 100) + '%"></i></div>' +
+      '<div class="dim" style="font-size:12px;margin:6px 0 10px">Неделя ' + plan.week + ' из ' + TOTAL_WEEKS + ' · фаза ' + plan.phase.n + ", " + esc(plan.phase.name) + '</div>' +
       '<button type="button" class="btn ghost" id="t-extra" style="width:100%">Начать тренировку · день ' + nextLetter() + '</button>';
   }
   h += '</div>';
+
+  /* что сегодня: приложение советует, решает человек */
+  const rec = basePlanFor(today);
+  const ov = overrideFor(today);
+  const recLabel = rec.kind === "train" ? "день " + rec.day : rec.kind === "walk" ? "ходьба" : "отдых";
+  const curKind = ov ? (ov.kind === "train" ? (ov.day || letterFor(today)) : ov.kind)
+                     : (rec.kind === "train" ? rec.day : rec.kind);
+  h += '<div class="card tight"><div class="between" style="margin-bottom:8px">' +
+    '<h3 style="font-size:13px">Что сегодня</h3>' +
+    '<span class="pill' + (ov ? "" : " acc") + '">' + (ov ? "выбрано вручную" : "по плану: " + esc(recLabel)) + '</span></div>' +
+    '<div class="seg full">' +
+    [["A", "День A"], ["B", "День B"], ["walk", "Ходьба"], ["rest", "Отдых"]].map(x =>
+      '<button type="button" data-kind="' + x[0] + '" aria-pressed="' + (curKind === x[0]) + '">' + x[1] + '</button>').join("") +
+    '</div>' +
+    (ov ? '<button type="button" class="btn sm ghost" id="t-auto" style="margin-top:8px;width:100%">Вернуть рекомендацию · ' + esc(recLabel) + '</button>' : "") +
+    '</div>';
 
   /* плотная сводка дня */
   h += '<div class="metrics" style="grid-template-columns:1fr 1fr">' +
@@ -1753,18 +1897,30 @@ function renderToday() {
           '" aria-label="Как делать: ' + esc(e.name) + '">' + ic("ic-info", 15) + '</button>' : "") + '</div>').join("") + '</div>';
   }
 
-  /* где мы в 36-недельном плане */
+  /* где мы в плане целиком */
   if (plan.kind !== "rest") {
     h += '<div class="card tight"><div class="between" style="font-size:12px">' +
       '<span class="dim">Фаза ' + plan.phase.n + ' · ' + esc(plan.phase.name) + '</span>' +
-      '<span class="n dim">неделя ' + plan.week + ' / 36</span></div>' +
-      '<div class="track" style="margin-top:7px"><i style="width:' + (plan.week / 36 * 100).toFixed(1) + '%"></i></div></div>';
+      '<span class="n dim">неделя ' + plan.week + ' / ' + TOTAL_WEEKS + '</span></div>' +
+      '<div class="track" style="margin-top:7px"><i style="width:' + Math.min(100, plan.week / TOTAL_WEEKS * 100).toFixed(1) + '%"></i></div></div>';
   }
 
   el.innerHTML = h;
   const go = $("#t-go");
   if (go) go.addEventListener("click", () => { if (state.active) showTab("workout"); else startWorkout(); });
   const wk = $("#t-walk"); if (wk) wk.addEventListener("click", toggleWalk);
+  $$("[data-kind]", el).forEach(b => b.addEventListener("click", () => setDayKind(b.dataset.kind)));
+  const au = $("#t-auto"); if (au) au.addEventListener("click", () => setDayKind("auto"));
+  const s1 = $("#st-today"); if (s1) s1.addEventListener("click", () => confirmStart(isoDate()));
+  const s2 = $("#st-ok");
+  if (s2) s2.addEventListener("click", () => { state.program.confirmedStart = true; saveState(); renderToday(); toast("Ок, оставил как есть"); });
+  const s3 = $("#st-pick");
+  if (s3) s3.addEventListener("click", () => modal({
+    title: "Дата старта программы",
+    html: '<p class="mid" style="font-size:13px">С этой даты считаются недели, фазы и разгрузочные недели. Можно поставить и прошлую дату, если ты уже занимался.</p>' +
+      '<div class="field"><span>Дата</span><input type="date" id="sd" value="' + esc(state.program.startedAt) + '"></div>',
+    okText: "Сохранить", collect: b => $("#sd", b).value
+  }).then(d => { if (d) confirmStart(d); }));
   const ex = $("#t-extra");
   if (ex) ex.addEventListener("click", () => startWorkout({ letter: nextLetter(), makeupFor: missed[0] || null }));
   const mk = $("#t-makeup");
@@ -1815,12 +1971,18 @@ function renderFood() {
     ' · норма от веса ' + (state.targets.basedOnWeight || state.profile.startWeightKg) + ' кг</div></div>';
 
   h += '<div class="card"><div class="flex" style="margin-bottom:10px">' +
-    '<button type="button" class="btn pri sm" id="f-tpl">Шаблон дня</button>' +
     '<button type="button" class="btn sm" id="f-yday">Повторить вчера</button>' +
     '<button type="button" class="btn sm ghost" id="f-own">Мой продукт</button></div>' +
+    '<h4 style="margin:0 0 6px">Шаблоны дня — весь день одной кнопкой</h4>' +
+    '<div class="chips" style="margin-bottom:12px">' + DAY_TEMPLATES.map(t => {
+      const tt = templateTotals(t);
+      const cheap = t.meals.every(m => { const d = DISHES.find(x => x.key === m[1]); return d && d.cost <= 1; });
+      return '<button type="button" class="chip" data-tpl="' + t.key + '" title="' + esc(t.note) + '">' +
+        esc(t.name) + '<b>' + tt.kcal + ' · Б' + Math.round(tt.p) + (cheap ? " · ₽" : "") + '</b></button>';
+    }).join("") + '</div>' +
     '<div class="chips">' + DISHES.map(d => '<button type="button" class="chip" data-dish="' + d.key + '" title="' + esc(d.made) + '">' +
-      esc(d.name) + '<b>' + d.kcal + '</b></button>').join("") + '</div>' +
-    '<input type="search" id="f-q" placeholder="Продукт по граммам: курица, творог, рис…" style="margin-top:10px">' +
+      esc(d.name) + '<b>' + d.kcal + ' · Б' + d.p + ' · ' + costMark(d.cost) + '</b></button>').join("") + '</div>' +
+    '<input type="search" id="f-q" placeholder="Продукт по граммам: курица, йогурт, рис…" style="margin-top:10px">' +
     '<div class="chips" id="f-res" style="margin-top:8px"></div></div>';
 
   h += '<div class="card"><div class="between" style="margin-bottom:4px"><h3>Съедено сегодня</h3>' +
@@ -1857,12 +2019,24 @@ function renderFood() {
 
   el.innerHTML = h;
 
-  $("#f-tpl").addEventListener("click", () => modal({
-    title: "Шаблон дня", text: "Добавить четыре приёма: 11:00, 15:00, 18:00, 21:00?", okText: "Добавить"
-  }).then(ok => {
-    if (!ok) return;
-    DAY_TEMPLATE.forEach(r => addMeal([itemDish(DISHES.find(d => d.key === r.dish))], r.time));
-    saveState(true); renderFood(); toast("Шаблон добавлен", "good");
+  $$("[data-tpl]", el).forEach(b => b.addEventListener("click", () => {
+    const t = DAY_TEMPLATES.find(x => x.key === b.dataset.tpl);
+    const tt = templateTotals(t);
+    modal({
+      title: "Шаблон «" + t.name + "»",
+      html: '<p class="mid" style="font-size:13px">' + esc(t.note) + '</p><table><tbody>' +
+        t.meals.map(m => { const d = DISHES.find(x => x.key === m[1]);
+          return '<tr><td class="n dim">' + m[0] + '</td><td>' + esc(d.name) +
+            '<br><span class="dim" style="font-size:11px">' + esc(d.made) + '</span></td>' +
+            '<td class="n">' + d.kcal + '<br><span class="dim" style="font-size:11px">' + costMark(d.cost) + '</span></td></tr>'; }).join("") +
+        '</tbody></table><p class="dim" style="font-size:12px;margin-top:8px">Итого ' + tt.kcal + ' ккал · Б ' +
+        Math.round(tt.p) + ' · Ж ' + Math.round(tt.f) + ' · У ' + Math.round(tt.c) + '</p>',
+      okText: "Добавить на сегодня"
+    }).then(ok => {
+      if (!ok) return;
+      t.meals.forEach(m => addMeal([itemDish(DISHES.find(x => x.key === m[1]))], m[0]));
+      saveState(true); renderFood(); toast("Шаблон «" + t.name + "» добавлен", "good");
+    });
   }));
   $("#f-yday").addEventListener("click", () => {
     const y = mealsOn(addDays(today, -1));
@@ -2082,9 +2256,10 @@ function renderMore() {
     '<button type="button" data-md="home" aria-pressed="' + (p.mode === "home") + '">Дом</button></div></div></div>';
 
   h += '<div class="sec-h">Программа</div>';
+  h += '<p class="dim" style="font-size:12.5px;margin:0 0 8px">Первые три недели — вводный блок: те же дни недели, но подходов меньше и упражнения попроще. Дальше три основные фазы.</p>';
   h += '<div class="card tight"><div class="between"><span style="font-size:13px">Фаза ' + cur.phase.n + " · " + esc(cur.phase.name) + '</span>' +
-    '<span class="n dim" style="font-size:12px">неделя ' + cur.week + ' / 36</span></div>' +
-    '<div class="track" style="margin-top:8px"><i style="width:' + (cur.week / 36 * 100) + '%"></i></div></div>';
+    '<span class="n dim" style="font-size:12px">неделя ' + cur.week + ' / ' + TOTAL_WEEKS + '</span></div>' +
+    '<div class="track" style="margin-top:8px"><i style="width:' + Math.min(100, cur.week / TOTAL_WEEKS * 100) + '%"></i></div></div>';
   PHASES.forEach(ph => {
     h += '<details class="acc"' + (ph.n === cur.phase.n ? " open" : "") + '><summary>Фаза ' + ph.n + ' · ' + esc(ph.name) +
       '<span class="pill' + (ph.n === cur.phase.n ? " acc" : "") + '" style="margin-left:6px">н' + ph.from + "–" + ph.to + '</span></summary><div class="in">' +
@@ -2404,6 +2579,12 @@ const FIGURES = {
     '<path class="b" d="M60 56 56 76M56 76 58 92M60 56 86 78M86 78 102 62M60 56 58 34"/>' +
     '<circle class="h" cx="58" cy="26" r="7"/>',
 
+  /* приседания без веса */
+  squat: FLOOR +
+    '<path class="b" d="M54 36 62 60M62 60 48 72M48 72 54 92M54 36 88 44"/>' +
+    '<circle class="h" cx="52" cy="26" r="7"/>' +
+    '<path class="ar" d="M104 50 104 74M99 67 104 74 109 67"/>',
+
   /* пистолет */
   pistol: FLOOR +
     '<path class="b" d="M60 58 52 76M52 76 58 92M60 58 112 54M60 58 62 36M62 44 96 46"/>' +
@@ -2557,6 +2738,16 @@ const GUIDES = {
       "Отталкиваться задней ногой: она только для равновесия."],
     v: "" },
 
+  squat: { fig: "squat", t: "Приседания без веса",
+    how: ["Стопы на ширине плеч, носки чуть наружу, вес на всей стопе.",
+      "Вниз до параллели бедра с полом или чуть ниже — насколько пускает подвижность.",
+      "Колени идут вдоль стоп, не заваливаются внутрь.",
+      "Спина прямая, наклон корпуса вперёд нормален."],
+    err: ["Отрыв пяток: не хватает подвижности голеностопа, подложи под пятки книгу.",
+      "Колени внутрь — самая частая ошибка, следи за ними в первых подходах.",
+      "Полуприсед вместо полной амплитуды."],
+    v: "" },
+
   pistol: { fig: "pistol", t: "Пистолет",
     how: ["Начинай с приседа на возвышение — так проще контролировать глубину.",
       "Пятка опорной ноги не отрывается от пола.",
@@ -2603,7 +2794,8 @@ const EX_GUIDE = {
   knee_raises: "hangraise", leg_raises_hang: "hangraise", toes_to_bar: "hangraise",
   straddle_lsit: "lsit",
   dead_hang: "hang",
-  bulgarian: "split", lunges: "split",
+  bulgarian: "split", lunges: "split", squats: "squat",
+  bench_dips: "dip", knee_raises_floor: "hollow",
   pistol_box: "pistol", pistol: "pistol",
   muscleup_neg: "muscleup",
   wrists: "wrists"
@@ -2684,8 +2876,15 @@ const NOTES_TXT = [
 
   { g: "Питание", t: "Белок: сколько, зачем и откуда", b: [
     "155 г в день — это примерно 1,8 г на килограмм веса. На дефиците белок нужен больше обычного: он и мышцы защищает, и насыщает лучше всего остального.",
-    "Практически это 4 приёма по 35–40 г. Ориентиры: 200 г куриной грудки — 46 г, 200 г творога 2% — 36 г, 3 яйца — 19 г, порция протеина — 24 г.",
+    "Практически это 4 приёма по 35–40 г. Ориентиры: 200 г куриной грудки — 46 г, 250 г греческого йогурта — 23 г, 4 яйца — 28 г, 30 г протеина — 24 г.",
     "Самая частая дыра — завтрак и перекусы. Если первый приём в 11:00 состоит из хлеба с чем-то, ты уже отстал на 30 г и добрать их вечером тяжело физически."] },
+
+  { g: "Питание", t: "155 г белка без разорения", b: [
+    "Белок — самая дорогая часть рациона, и именно на нём обычно ломается любой план. Порядок цен за грамм белка примерно такой: яйца и куриное бедро дешевле всего, дальше грудка и фарш, дороже всего сыр, орехи, протеин и красное мясо.",
+    "Куриное бедро без кожи обычно в полтора-два раза дешевле грудки за килограмм, а белка в нём лишь немного меньше (19 г против 23 на 100 г). Разница в жире съедается тем, что бедро вкуснее и его реально хочется есть — а рацион, который не хочется есть, не работает.",
+    "Сухие крупы и бобовые считай по сухому весу: гречка, чечевица и фасоль дают дешёвые углеводы и заодно 12–24 г белка на 100 г. Чечевица здесь недооценена — по белку она сопоставима с мясом.",
+    "Что реально экономит: брать мясо большими упаковками и сразу делить на порции по 150–200 г в морозилку; овощи брать сезонные и замороженные; яйца десятками. Протеин считай по цене за порцию, а не за банку — это единственный честный способ сравнить.",
+    "Одна доставка в день по деньгам обычно равна двум-трём дням домашней готовки. Это не повод её запрещать, но повод помнить, что «бюджетный» шаблон в приложении и заказ — это разница примерно в три раза."] },
 
   { g: "Питание", t: "Как считать, когда лень взвешивать", b: [
     "Взвешивать всё вечно невозможно, и не надо. Первые две-три недели взвешивай — не ради цифр, а чтобы натренировать глазомер. Дальше хватит оценки.",
